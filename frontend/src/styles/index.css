@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* Accessibility & Focus Rings */
+*:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+/* Print CSS Media Queries */
+@media print {
+  /* Hide interactive elements and page chrome */
+  nav, 
+  header, 
+  footer, 
+  button, 
+  .no-print,
+  a[href^="http"]::after {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Make containers print full width with black borders instead of shadows */
+  .card, 
+  .print-card {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #000000 !important;
+    margin-bottom: 1.5rem !important;
+    page-break-inside: avoid;
+    border-radius: 0 !important;
+  }
+
+  /* High contrast colors for print compatibility */
+  .text-red-600, .text-red-700, .bg-red-50, .border-red-200 {
+    color: #000000 !important;
+    border-color: #000000 !important;
+    background: transparent !important;
+  }
+
+  .text-green-600, .text-green-700, .bg-green-50, .border-green-200 {
+    color: #000000 !important;
+    border-color: #000000 !important;
+    background: transparent !important;
+  }
+
+  .text-amber-600, .text-amber-700, .bg-amber-50, .border-amber-200 {
+    color: #000000 !important;
+    border-color: #000000 !important;
+    background: transparent !important;
+  }
+
+  /* Heading adjustments for print */
+  h1, h2, h3, h4 {
+    color: #000000 !important;
+    page-break-after: avoid;
+  }
+}
