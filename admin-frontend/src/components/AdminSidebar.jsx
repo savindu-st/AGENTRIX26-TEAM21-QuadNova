@@ -8,6 +8,7 @@ import {
   Clock,
   AlertTriangle,
   BookOpen,
+  Star,
   LogOut
 } from 'lucide-react';
 
@@ -19,6 +20,7 @@ const AdminSidebar = () => {
     { name: 'Offices', path: '/offices', icon: Building2 },
     { name: 'Officer Availability', path: '/officers', icon: Clock },
     { name: 'Crowd Reports', path: '/reports', icon: AlertTriangle },
+    { name: 'Customer Reviews', path: '/reviews', icon: Star },
     { name: 'Knowledge Base', path: '/knowledge', icon: BookOpen },
   ];
 

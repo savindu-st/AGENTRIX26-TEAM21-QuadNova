@@ -8,6 +8,7 @@ import ServiceManager from './pages/ServiceManager';
 import OfficeManager from './pages/OfficeManager';
 import OfficerAvailability from './pages/OfficerAvailability';
 import CrowdReports from './pages/CrowdReports';
+import CustomerReviews from './pages/CustomerReviews';
 
 
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/offices" element={<OfficeManager />} />
             <Route path="/officers" element={<OfficerAvailability />} />
             <Route path="/reports" element={<CrowdReports />} />
+            <Route path="/reviews" element={<CustomerReviews />} />
 
 
 
