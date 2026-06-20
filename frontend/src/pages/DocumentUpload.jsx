@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useCitizenCase } from '../hooks/useCitizenCase';
 import UploadBox from '../components/UploadBox';
 import ResultCard from '../components/ResultCard';
-import { FileUp, ArrowRight, Loader2, AlertCircle, ShieldAlert, FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { FileUp, ArrowRight, Loader2, AlertCircle, ShieldAlert, FileText, CheckCircle2, Sparkles, Trash2 } from 'lucide-react';
 
 export default function DocumentUpload() {
-  const { uploadFile, updateCitizenData, loading, error, caseId, citizenData } = useCitizenCase();
+  const { uploadFile, updateCitizenData, loading, error, caseId, citizenData, documents, deleteFile } = useCitizenCase();
   const navigate = useNavigate();
   const [isManual, setIsManual] = useState(false);
 
@@ -149,7 +149,55 @@ export default function DocumentUpload() {
                 <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                   Drop a clear photograph or scan of your National Identity Card (NIC) or Birth Certificate. Our civic AI automatically extracts the name, address, and ID registration token.
                 </p>
-                <UploadBox onUpload={handleFileUpload} />
+                <UploadBox 
+                  onUpload={handleFileUpload} 
+                  disabled={documents && documents.length >= 3} 
+                  currentCount={documents ? documents.length : 0} 
+                />
+
+                {/* Uploaded Documents List */}
+                {documents && documents.length > 0 && (
+                  <div className="mt-6 space-y-3">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        Uploaded Documents ({documents.length} / 3)
+                      </h4>
+                      {documents.length >= 3 && (
+                        <span className="text-[10px] text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full font-bold border border-amber-100 animate-pulse">
+                          Max limit reached
+                        </span>
+                      )}
+                    </div>
+                    <div className="divide-y divide-slate-100 bg-white border border-slate-200/60 rounded-xl overflow-hidden shadow-sm">
+                      {documents.map((doc, idx) => (
+                        <div key={idx} className="p-3.5 flex items-center justify-between gap-4 bg-white hover:bg-slate-50/50 transition-colors">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="bg-teal-50 text-teal-700 p-2 rounded-lg">
+                              <FileText className="h-4.5 w-4.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-sm font-semibold text-slate-800 truncate block">
+                                {doc.name}
+                              </span>
+                              <span className="text-[10px] text-teal-650 font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-100 inline-block mt-1">
+                                OCR Verification Active
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => deleteFile(doc.name)}
+                            className="text-slate-400 hover:text-red-650 p-2 rounded-lg hover:bg-red-50 transition-all cursor-pointer"
+                            title="Delete document"
+                          >
+                            <Trash2 className="h-4.5 w-4.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* AI Extracted Profile Preview Card */}
                 {citizenData?.extractedDetails && (

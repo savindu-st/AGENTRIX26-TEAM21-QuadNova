@@ -2,25 +2,25 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-class CitizenCaseBase(BaseModel):
-    citizen_name: str
-    district: str
-    description: str
-
 class CitizenCaseCreate(BaseModel):
-    citizen_name: Optional[str] = None
     fullName: Optional[str] = None
+    citizen_name: Optional[str] = None
     district: str
-    description: Optional[str] = None
+    address: Optional[str] = ""
     serviceNeed: Optional[str] = None
-    available_documents: Optional[List[str]] = []
+    description: Optional[str] = None
+    language: Optional[str] = "English"
     availableDocuments: Optional[List[str]] = []
+    available_documents: Optional[List[str]] = []
 
 class CitizenCaseUpdateStatus(BaseModel):
     status: str
 
-class CitizenCaseResponse(CitizenCaseBase):
+class CitizenCaseResponse(BaseModel):
     id: str
+    citizen_name: str
+    district: str
+    description: str
     detected_service: Optional[str] = None
     status: str
     visitguard_score: int
@@ -82,4 +82,4 @@ class CitizenCaseFullStateResponse(BaseModel):
     documents: List[DocumentStatus]
     visitPlan: Optional[VisitPlan] = None
     requiredDocs: Optional[List[str]] = []
-    formDetails: Optional[Dict[str, Any]] = None
+    formDetails: Optional[FormDetails] = None

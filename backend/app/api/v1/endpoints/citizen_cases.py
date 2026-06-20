@@ -211,6 +211,14 @@ def upload_case_document(case_id: str, file: UploadFile = File(...), db: Session
             detail="AI State not initialized for this case"
         )
         
+    state = json.loads(ai_resp.response_text)
+    docs = state.get("documents", [])
+    if len(docs) >= 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum of 3 documents can be uploaded for autofill"
+        )
+        
     # Standard save path inside the workspace for persistency
     upload_dir = os.path.join(os.getcwd(), "uploads")
     os.makedirs(upload_dir, exist_ok=True)
@@ -239,9 +247,6 @@ def upload_case_document(case_id: str, file: UploadFile = File(...), db: Session
         logger.error(f"Failed to run OCR details extraction: {ex}")
         
     # Update AI Response State documents list
-    state = json.loads(ai_resp.response_text)
-    docs = state.get("documents", [])
-    
     new_doc = {
         "name": file.filename,
         "status": "success",
@@ -255,6 +260,59 @@ def upload_case_document(case_id: str, file: UploadFile = File(...), db: Session
     db.commit()
     db.refresh(db_case)
     
+    return {"success": True, "case": get_full_case_state(db_case, db)}
+
+
+@cases_router.delete("/{case_id}/document")
+def delete_case_document(case_id: str, filename: str, db: Session = Depends(get_db)):
+    db_case = db.query(CitizenCase).filter(CitizenCase.id == case_id).first()
+    if not db_case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case {case_id} not found"
+        )
+        
+    ai_resp = db.query(AIResponse).filter(AIResponse.case_id == case_id).first()
+    if not ai_resp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI State not initialized for this case"
+        )
+        
+    state = json.loads(ai_resp.response_text)
+    docs = state.get("documents", [])
+    
+    # Check if the document exists
+    matching_docs = [d for d in docs if d["name"] == filename]
+    if not matching_docs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {filename} not found in this case"
+        )
+        
+    # Remove document from list
+    updated_docs = [d for d in docs if d["name"] != filename]
+    state["documents"] = updated_docs
+    
+    # If no documents are left, update status back to "upload"
+    if len(updated_docs) == 0:
+        db_case.status = "upload"
+        state["status"] = "upload"
+        
+    # Save back
+    ai_resp.response_text = json.dumps(state)
+    db.commit()
+    db.refresh(db_case)
+    
+    # Try to delete the physical file
+    upload_dir = os.path.join(os.getcwd(), "uploads")
+    file_path = os.path.join(upload_dir, f"{case_id}_{filename}")
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            logger.error(f"Failed to delete physical file {file_path}: {e}")
+            
     return {"success": True, "case": get_full_case_state(db_case, db)}
 
 
