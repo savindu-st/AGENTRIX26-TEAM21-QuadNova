@@ -1,18 +1,4 @@
-import axios from 'axios';
+// API and utilities
 
-const api = axios.create({
-  baseURL: '/api/v1',
-  headers: { 'Content-Type': 'application/json' },
-});
+export const api = {};
 
-// Attach token to every request
-api.interceptors.request.use((config) => {
-  const user = localStorage.getItem('admin_user');
-  if (user) {
-    // Simple session token (username based)
-    config.headers['X-Admin-User'] = JSON.parse(user).username;
-  }
-  return config;
-});
-
-export default api;
