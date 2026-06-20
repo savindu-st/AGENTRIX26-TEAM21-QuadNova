@@ -19,6 +19,81 @@ ai_router = APIRouter()
 # Share the same default follow-ups as citizen_cases.py
 from backend.app.api.v1.endpoints.citizen_cases import DEFAULT_QUESTIONS, get_full_case_state
 
+def extract_form_details_from_text(context: str, detected_service: str) -> dict:
+    """
+    Parses form details dynamically from the retrieved RAG context using regular expressions,
+    or falls back to service-specific standard details.
+    """
+    import re
+    title_match = re.search(r'(?:Form Title|Form Name)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    act_match = re.search(r'(?:Form Act|Act)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    subtitle_match = re.search(r'(?:Form Subtitle|Subtitle)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    field_label_match = re.search(r'(?:Form Field Label|Field Label)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    field_value_match = re.search(r'(?:Form Field Value|Field Value)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    desc_label_match = re.search(r'(?:Form Description Label|Description Label)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    default_desc_match = re.search(r'(?:Form Default Description|Default Description)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
+    
+    details = {}
+    if title_match: details["title"] = title_match.group(1).strip().strip("*")
+    if act_match: details["act"] = act_match.group(1).strip().strip("*")
+    if subtitle_match: details["subtitle"] = subtitle_match.group(1).strip().strip("*")
+    if field_label_match: details["fieldLabel"] = field_label_match.group(1).strip().strip("*")
+    if field_value_match: details["fieldValue"] = field_value_match.group(1).strip().strip("*")
+    if desc_label_match: details["descLabel"] = desc_label_match.group(1).strip().strip("*")
+    if default_desc_match: details["defaultDesc"] = default_desc_match.group(1).strip().strip("*")
+    
+    # Check if we have complete details, otherwise use fallback values based on detected_service keywords
+    svc_lower = detected_service.lower()
+    if not details.get("title"):
+        if "nic" in svc_lower or "identity" in svc_lower:
+            details["title"] = "Form M.T. 1 (DRP-V1)"
+            details["act"] = "REGISTRATION OF PERSONS ACT, NO. 32 OF 1968"
+            details["subtitle"] = "Application for Registration and Issue of a National Identity Card (NIC)"
+            details["fieldLabel"] = "4. Purpose of Application:"
+            details["fieldValue"] = "Renewal of Identity Card due to expiration or damage"
+            details["descLabel"] = "5. Personal identification details & remarks:"
+            details["defaultDesc"] = "Renewal of national identity card due to expiry of old card"
+        elif "passport" in svc_lower or "travel" in svc_lower:
+            details["title"] = "Form K-35 A"
+            details["act"] = "IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948"
+            details["subtitle"] = "Application for a Sri Lankan Passport / Travel Document"
+            details["fieldLabel"] = "4. Passport Category:"
+            details["fieldValue"] = "All Countries / Emergency Certificate"
+            details["descLabel"] = "5. Travel details & purpose description:"
+            details["defaultDesc"] = "Requesting normal service standard passport issue"
+        elif "tree" in svc_lower or "felling" in svc_lower or "cut" in svc_lower:
+            details["title"] = "Schedule II - Form A"
+            details["act"] = "Felling of Trees (Control) Act, No. 9 of 1951"
+            details["subtitle"] = "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree"
+            details["fieldLabel"] = "4. Species of Tree:"
+            details["fieldValue"] = "Jak Tree (Artocarpus heterophyllus)"
+            details["descLabel"] = "5. Description of land and reasons for the request:"
+            details["defaultDesc"] = "Requesting tree felling permit due to structural hazard"
+        elif "license" in svc_lower or "driving" in svc_lower:
+            details["title"] = "Form DL-1"
+            details["act"] = "MOTOR TRAFFIC ACT, NO. 14 OF 1951"
+            details["subtitle"] = "Application for the Renewal / Issue of Driving License"
+            details["fieldLabel"] = "4. Driving Vehicle Class:"
+            details["fieldValue"] = "Class B (Light Cars & Dual Purpose Vehicles)"
+            details["descLabel"] = "5. License validity renewal justifications:"
+            details["defaultDesc"] = "Renewal of standard vehicle driving license"
+        else:
+            details["title"] = "General Form"
+            details["act"] = "PUBLIC SERVICE ACT"
+            details["subtitle"] = "Application for public service assistance"
+            details["fieldLabel"] = "4. Category:"
+            details["fieldValue"] = "General Request"
+            details["descLabel"] = "5. Request details & remarks:"
+            details["defaultDesc"] = "Requesting general public service coordination"
+            
+    # Ensure default labels/descriptions exist
+    if "descLabel" not in details:
+        details["descLabel"] = "5. Description and reasons for the request:"
+    if "defaultDesc" not in details:
+        details["defaultDesc"] = "Requesting service support"
+        
+    return details
+
 
 def run_ai_analysis(db_case: CitizenCase, db: Session) -> dict:
     ai_resp = db.query(AIResponse).filter(AIResponse.case_id == db_case.id).first()
@@ -174,80 +249,6 @@ Verified Community Suggestions:
         if q.get("answered"):
             questions_text += f"- Question: {q['text']}\n  Answer: {q['answer']}\n"
             
-def extract_form_details_from_text(context: str, detected_service: str) -> dict:
-    """
-    Parses form details dynamically from the retrieved RAG context using regular expressions,
-    or falls back to service-specific standard details.
-    """
-    import re
-    title_match = re.search(r'(?:Form Title|Form Name)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    act_match = re.search(r'(?:Form Act|Act)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    subtitle_match = re.search(r'(?:Form Subtitle|Subtitle)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    field_label_match = re.search(r'(?:Form Field Label|Field Label)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    field_value_match = re.search(r'(?:Form Field Value|Field Value)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    desc_label_match = re.search(r'(?:Form Description Label|Description Label)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    default_desc_match = re.search(r'(?:Form Default Description|Default Description)[\s\*\:\-]+([^\n\r]+)', context, re.IGNORECASE)
-    
-    details = {}
-    if title_match: details["title"] = title_match.group(1).strip().strip("*")
-    if act_match: details["act"] = act_match.group(1).strip().strip("*")
-    if subtitle_match: details["subtitle"] = subtitle_match.group(1).strip().strip("*")
-    if field_label_match: details["fieldLabel"] = field_label_match.group(1).strip().strip("*")
-    if field_value_match: details["fieldValue"] = field_value_match.group(1).strip().strip("*")
-    if desc_label_match: details["descLabel"] = desc_label_match.group(1).strip().strip("*")
-    if default_desc_match: details["defaultDesc"] = default_desc_match.group(1).strip().strip("*")
-    
-    # Check if we have complete details, otherwise use fallback values based on detected_service keywords
-    svc_lower = detected_service.lower()
-    if not details.get("title"):
-        if "nic" in svc_lower or "identity" in svc_lower:
-            details["title"] = "Form M.T. 1 (DRP-V1)"
-            details["act"] = "REGISTRATION OF PERSONS ACT, NO. 32 OF 1968"
-            details["subtitle"] = "Application for Registration and Issue of a National Identity Card (NIC)"
-            details["fieldLabel"] = "4. Purpose of Application:"
-            details["fieldValue"] = "Renewal of Identity Card due to expiration or damage"
-            details["descLabel"] = "5. Personal identification details & remarks:"
-            details["defaultDesc"] = "Renewal of national identity card due to expiry of old card"
-        elif "passport" in svc_lower or "travel" in svc_lower:
-            details["title"] = "Form K-35 A"
-            details["act"] = "IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948"
-            details["subtitle"] = "Application for a Sri Lankan Passport / Travel Document"
-            details["fieldLabel"] = "4. Passport Category:"
-            details["fieldValue"] = "All Countries / Emergency Certificate"
-            details["descLabel"] = "5. Travel details & purpose description:"
-            details["defaultDesc"] = "Requesting normal service standard passport issue"
-        elif "tree" in svc_lower or "felling" in svc_lower or "cut" in svc_lower:
-            details["title"] = "Schedule II - Form A"
-            details["act"] = "Felling of Trees (Control) Act, No. 9 of 1951"
-            details["subtitle"] = "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree"
-            details["fieldLabel"] = "4. Species of Tree:"
-            details["fieldValue"] = "Jak Tree (Artocarpus heterophyllus)"
-            details["descLabel"] = "5. Description of land and reasons for the request:"
-            details["defaultDesc"] = "Requesting tree felling permit due to structural hazard"
-        elif "license" in svc_lower or "driving" in svc_lower:
-            details["title"] = "Form DL-1"
-            details["act"] = "MOTOR TRAFFIC ACT, NO. 14 OF 1951"
-            details["subtitle"] = "Application for the Renewal / Issue of Driving License"
-            details["fieldLabel"] = "4. Driving Vehicle Class:"
-            details["fieldValue"] = "Class B (Light Cars & Dual Purpose Vehicles)"
-            details["descLabel"] = "5. License validity renewal justifications:"
-            details["defaultDesc"] = "Renewal of standard vehicle driving license"
-        else:
-            details["title"] = "General Form"
-            details["act"] = "PUBLIC SERVICE ACT"
-            details["subtitle"] = "Application for public service assistance"
-            details["fieldLabel"] = "4. Category:"
-            details["fieldValue"] = "General Request"
-            details["descLabel"] = "5. Request details & remarks:"
-            details["defaultDesc"] = "Requesting general public service coordination"
-            
-    # Ensure default labels/descriptions exist
-    if "descLabel" not in details:
-        details["descLabel"] = "5. Description and reasons for the request:"
-    if "defaultDesc" not in details:
-        details["defaultDesc"] = "Requesting service support"
-        
-    return details
 
 
     # 4. Prompt Gemini to generate final VisitPlan and FormDetails dynamically
