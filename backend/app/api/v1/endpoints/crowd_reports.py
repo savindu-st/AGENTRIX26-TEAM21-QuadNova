@@ -11,7 +11,7 @@ from backend.app.schemas.crowd_report_schema import (
 
 crowd_reports_router = APIRouter()
 
-@crowd_reports_router.post("/", response_model=CrowdReportResponse, status_code=status.HTTP_201_CREATED)
+@crowd_reports_router.post("", response_model=CrowdReportResponse, status_code=status.HTTP_201_CREATED)
 def create_report(report_in: CrowdReportCreate, db: Session = Depends(get_db)):
     # Verify office exists if office_id is provided
     if report_in.office_id:
@@ -50,7 +50,7 @@ def create_report(report_in: CrowdReportCreate, db: Session = Depends(get_db)):
 
 
 
-@crowd_reports_router.get("/", response_model=List[CrowdReportResponse])
+@crowd_reports_router.get("", response_model=List[CrowdReportResponse])
 def get_reports(db: Session = Depends(get_db)):
     return db.query(CrowdReport).all()
 

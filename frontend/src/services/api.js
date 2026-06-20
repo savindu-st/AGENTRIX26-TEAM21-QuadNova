@@ -364,18 +364,12 @@ const handleMockRequest = async (config) => {
     return { data: { success: true, case: currentCase } };
   }
 
-  // 5. POST /api/v1/crowd-reports
+  // 5. POST /api/v1/crowd-reports (Removed from mock so it always hits real DB)
+  // If we reach here for crowd-reports, we want it to actually fail instead of faking it.
   if (url.includes('/api/v1/crowd-reports') && method === 'post') {
-    const body = JSON.parse(config.data);
-    const report = {
-      id: 'report_' + Date.now(),
-      timestamp: new Date().toISOString(),
-      ...body
-    };
-    db.reports.push(report);
-    saveMockDb(db);
-    return { data: { success: true, report } };
+    return { status: 500, data: { message: 'Real backend unavailable for crowd reports.' } };
   }
+
 
   // Default fallback
   return { data: { success: true } };
