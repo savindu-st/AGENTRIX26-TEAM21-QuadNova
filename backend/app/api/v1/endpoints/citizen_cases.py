@@ -61,6 +61,7 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
     documents = []
     visit_plan = None
     required_docs = []
+    form_details = None
     
     if ai_resp:
         try:
@@ -69,6 +70,7 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
             documents = state.get("documents", [])
             visit_plan = state.get("visitPlan")
             required_docs = state.get("requiredDocs", [])
+            form_details = state.get("formDetails")
         except Exception:
             pass
             
