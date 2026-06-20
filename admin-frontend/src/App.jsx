@@ -3,6 +3,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AdminSidebar from './components/AdminSidebar';
 import Dashboard from './pages/Dashboard';
 import CitizenCases from './pages/CitizenCases';
+import CaseDetail from './pages/CaseDetail';
+import ServiceManager from './pages/ServiceManager';
+import OfficeManager from './pages/OfficeManager';
+import OfficerAvailability from './pages/OfficerAvailability';
+import CrowdReports from './pages/CrowdReports';
+
 
 
 function App() {
@@ -20,6 +26,14 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             {/* We will add other routes here later */}
             <Route path="/cases" element={<CitizenCases />} />
+            <Route path="/cases/:id" element={<CaseDetail />} />
+            <Route path="/services" element={<ServiceManager />} />
+            <Route path="/offices" element={<OfficeManager />} />
+            <Route path="/officers" element={<OfficerAvailability />} />
+            <Route path="/reports" element={<CrowdReports />} />
+
+
+
             <Route path="*" element={<div className="p-8 text-white">Page coming soon...</div>} />
           </Routes>
 
