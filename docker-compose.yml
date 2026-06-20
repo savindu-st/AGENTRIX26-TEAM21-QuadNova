@@ -7,9 +7,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/backend
     environment:
       - ENVIRONMENT=development
+      - PYTHONPATH=/
     env_file:
       - .env
 
@@ -28,7 +29,7 @@ services:
     build:
       context: ./admin-frontend
     ports:
-      - "5174:5174"
+      - "5174:5173"
     volumes:
       - ./admin-frontend:/app
       - /app/node_modules
