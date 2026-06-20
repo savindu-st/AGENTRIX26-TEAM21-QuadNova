@@ -7,8 +7,7 @@ export default function LanguageToggle() {
 
   const languages = [
     { label: 'English', native: 'English' },
-    { label: 'Sinhala', native: 'සිංහල' },
-    { label: 'Tamil', native: 'தமிழ்' }
+    { label: 'Sinhala', native: 'සිංහල' }
   ];
 
   const handleSelect = (name) => {
@@ -22,10 +21,10 @@ export default function LanguageToggle() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 border border-emerald-700 rounded-lg text-sm bg-emerald-900/50 hover:bg-emerald-900 text-emerald-100 focus:outline-none transition-colors duration-150"
+        className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-xl text-sm bg-white hover:bg-slate-50 text-slate-700 focus:outline-none transition-colors duration-150 shadow-sm cursor-pointer"
       >
-        <Globe className="h-4 w-4 text-emerald-400" />
-        <span>{lang}</span>
+        <Globe className="h-4 w-4 text-teal-600" />
+        <span className="font-semibold">{lang}</span>
       </button>
 
       {isOpen && (
@@ -34,17 +33,17 @@ export default function LanguageToggle() {
             className="fixed inset-0 z-10" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 focus:outline-none overflow-hidden">
+          <div className="absolute right-0 mt-2 w-36 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20 focus:outline-none overflow-hidden">
             <div className="py-1">
               {languages.map((l) => (
                 <button
                   key={l.label}
                   onClick={() => handleSelect(l.label)}
-                  className="flex items-center justify-between w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-950 transition-colors"
+                  className="flex items-center justify-between w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-950 transition-colors cursor-pointer"
                 >
-                  <span className="font-medium">{l.native}</span>
+                  <span className="font-semibold">{l.native}</span>
                   {lang === l.label && (
-                    <Check className="h-4 w-4 text-emerald-600" />
+                    <Check className="h-4 w-4 text-teal-600 font-bold" />
                   )}
                 </button>
               ))}

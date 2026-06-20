@@ -48,12 +48,12 @@ export default function VisitGuardScore({ score = 0, riskLevel = 'Ready' }) {
       };
     } else {
       return {
-        color: 'text-emerald-600',
-        stroke: '#10b981',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        icon: <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />,
-        badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        color: 'text-teal-600',
+        stroke: '#0d9488',
+        bg: 'bg-teal-50/50',
+        border: 'border-teal-100',
+        icon: <ShieldCheck className="h-5 w-5 text-teal-600 shrink-0" />,
+        badgeBg: 'bg-teal-100/80 text-teal-800 border-teal-200',
         desc: 'Excellent! All core requirements and documents verified. You are ready to visit the counter.'
       };
     }

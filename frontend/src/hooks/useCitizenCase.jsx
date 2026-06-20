@@ -155,6 +155,14 @@ export function CitizenCaseProvider({ children }) {
     }
   };
 
+  const updateCitizenData = (newData) => {
+    setCitizenData((prev) => {
+      const updated = { ...prev, ...newData };
+      localStorage.setItem('praja_citizen_data', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const resetCase = () => {
     setCaseId(null);
     setCitizenData(null);
@@ -187,6 +195,7 @@ export function CitizenCaseProvider({ children }) {
         submitAnswers,
         uploadFile,
         submitCrowdReport,
+        updateCitizenData,
         resetCase,
       }}
     >
