@@ -2,6 +2,7 @@ import json
 import random
 import os
 import shutil
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
@@ -13,6 +14,7 @@ from backend.app.schemas.citizen_case_schema import (
     CitizenCaseFullStateResponse, CaseQuestion, DocumentStatus
 )
 
+logger = logging.getLogger("prajanavigator.citizen_cases")
 cases_router = APIRouter()
 
 # Default follow-up questions to initialize when case is created
@@ -59,7 +61,6 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
     documents = []
     visit_plan = None
     required_docs = []
-    form_details = None
     
     if ai_resp:
         try:
@@ -68,18 +69,18 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
             documents = state.get("documents", [])
             visit_plan = state.get("visitPlan")
             required_docs = state.get("requiredDocs", [])
-            form_details = state.get("formDetails")
         except Exception:
             pass
             
     return {
         "caseId": db_case.id,
         "citizenData": {
+            "fullName": db_case.citizen_name,
             "citizen_name": db_case.citizen_name,
             "district": db_case.district,
             "description": db_case.description,
             "detected_service": db_case.detected_service,
-            "formDetails": form_details
+            "extractedDetails": db_case.extracted_details
         },
         "status": db_case.status,
         "questions": questions,
@@ -93,7 +94,7 @@ def create_case(case_in: CitizenCaseCreate, db: Session = Depends(get_db)):
     # Generate unique ID e.g., CAS-XXXX
     case_id = f"CAS-{random.randint(1000, 9999)}"
     
-    citizen_name = case_in.fullName or case_in.citizen_name or "Anonymous"
+    citizen_name = case_in.fullName or case_in.citizen_name or "Unknown Citizen"
     description = case_in.serviceNeed or case_in.description or ""
     
     # Detect simple service intent based on description
@@ -200,6 +201,25 @@ def upload_case_document(case_id: str, file: UploadFile = File(...), db: Session
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
+    # Run OCR Extraction
+    from backend.app.vision.ocr_extractor import extract_details_from_document
+    try:
+        file.file.seek(0)
+        file_bytes = file.file.read()
+        extracted = extract_details_from_document(file_bytes, file.filename)
+        
+        # Save extracted details to case model
+        if not db_case.extracted_details:
+            db_case.extracted_details = extracted
+        else:
+            current = dict(db_case.extracted_details)
+            for k, v in extracted.items():
+                if v is not None:
+                    current[k] = v
+            db_case.extracted_details = current
+    except Exception as ex:
+        logger.error(f"Failed to run OCR details extraction: {ex}")
+        
     # Update AI Response State documents list
     state = json.loads(ai_resp.response_text)
     docs = state.get("documents", [])
@@ -215,6 +235,7 @@ def upload_case_document(case_id: str, file: UploadFile = File(...), db: Session
     # Save back
     ai_resp.response_text = json.dumps(state)
     db.commit()
+    db.refresh(db_case)
     
     return {"success": True, "case": get_full_case_state(db_case, db)}
 
