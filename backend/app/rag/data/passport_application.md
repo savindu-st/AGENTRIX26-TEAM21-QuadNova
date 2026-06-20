@@ -18,3 +18,13 @@ For one-day service, citizens can walk into the Head Office (Battaramulla) or au
 2. **Current NIC**: Original and a photocopy.
 3. **Original Birth Certificate**: Must be submitted along with a copy.
 4. ** GN Certified Photos**: Three (3) colored photographs according to specifications.
+
+## Form Details
+- **Form Title**: Form K-35 A
+- **Form Act**: IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948
+- **Form Subtitle**: Application for a Sri Lankan Passport / Travel Document
+- **Form Field Label**: 4. Passport Category:
+- **Form Field Value**: All Countries / Emergency Certificate
+- **Form Description Label**: 5. Travel details & purpose description:
+- **Form Default Description**: Requesting normal service standard passport issue
+

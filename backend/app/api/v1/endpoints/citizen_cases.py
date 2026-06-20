@@ -59,6 +59,7 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
     documents = []
     visit_plan = None
     required_docs = []
+    form_details = None
     
     if ai_resp:
         try:
@@ -67,6 +68,7 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
             documents = state.get("documents", [])
             visit_plan = state.get("visitPlan")
             required_docs = state.get("requiredDocs", [])
+            form_details = state.get("formDetails")
         except Exception:
             pass
             
@@ -76,7 +78,8 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
             "citizen_name": db_case.citizen_name,
             "district": db_case.district,
             "description": db_case.description,
-            "detected_service": db_case.detected_service
+            "detected_service": db_case.detected_service,
+            "formDetails": form_details
         },
         "status": db_case.status,
         "questions": questions,
@@ -90,8 +93,11 @@ def create_case(case_in: CitizenCaseCreate, db: Session = Depends(get_db)):
     # Generate unique ID e.g., CAS-XXXX
     case_id = f"CAS-{random.randint(1000, 9999)}"
     
+    citizen_name = case_in.fullName or case_in.citizen_name or "Anonymous"
+    description = case_in.serviceNeed or case_in.description or ""
+    
     # Detect simple service intent based on description
-    desc = case_in.description.lower()
+    desc = description.lower()
     detected_service = "Other Service"
     if "tree" in desc or "felling" in desc or "cut" in desc:
         detected_service = "Tree Felling Permit"
@@ -104,9 +110,9 @@ def create_case(case_in: CitizenCaseCreate, db: Session = Depends(get_db)):
         
     db_case = CitizenCase(
         id=case_id,
-        citizen_name=case_in.citizen_name,
+        citizen_name=citizen_name,
         district=case_in.district,
-        description=case_in.description,
+        description=description,
         detected_service=detected_service,
         status="clarification",
         visitguard_score=70,

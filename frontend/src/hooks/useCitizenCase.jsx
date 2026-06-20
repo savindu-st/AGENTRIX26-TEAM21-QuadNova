@@ -88,6 +88,9 @@ export function CitizenCaseProvider({ children }) {
       setQuestions(data.questions || []);
       setDocuments(data.documents || []);
       setVisitPlan(data.visitPlan || null);
+      if (data.citizenData) {
+        setCitizenData(data.citizenData);
+      }
     } catch (err) {
       console.error('Error analyzing case:', err);
       setError('AI Analysis failed. Please try again.');
@@ -110,6 +113,9 @@ export function CitizenCaseProvider({ children }) {
       setQuestions(data.questions || []);
       setDocuments(data.documents || []);
       setVisitPlan(data.visitPlan || null);
+      if (data.citizenData) {
+        setCitizenData(data.citizenData);
+      }
     } catch (err) {
       console.error('Error submitting answers:', err);
       setError('Failed to submit answers. Please try again.');
@@ -117,6 +123,7 @@ export function CitizenCaseProvider({ children }) {
       setLoading(false);
     }
   };
+
 
   const uploadFile = async (file) => {
     if (!caseId) return;

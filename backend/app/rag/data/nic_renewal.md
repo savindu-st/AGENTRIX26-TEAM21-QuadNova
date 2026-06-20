@@ -16,3 +16,13 @@ This service allows Sri Lankan citizens to renew their National Identity Card (N
 3. **Original Birth Certificate**: Must be submitted along with a copy.
 4. **Photographs**: Three (3) color photographs of size 1.3" x 1.8", certified on the reverse side by the Grama Niladhari.
 5. **Marriage Certificate**: Required only if name has changed due to marriage (original and photocopy).
+
+## Form Details
+- **Form Title**: Form M.T. 1 (DRP-V1)
+- **Form Act**: REGISTRATION OF PERSONS ACT, NO. 32 OF 1968
+- **Form Subtitle**: Application for Registration and Issue of a National Identity Card (NIC)
+- **Form Field Label**: 4. Purpose of Application:
+- **Form Field Value**: Renewal of Identity Card due to expiration or damage
+- **Form Description Label**: 5. Personal identification details & remarks:
+- **Form Default Description**: Renewal of national identity card due to expiry of old card
+
