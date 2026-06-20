@@ -15,7 +15,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "5173:5173"
+      - "3000:5173"  # Changed host port to 3000 to bypass Windows port blocking
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -26,7 +26,7 @@ services:
     build:
       context: ./admin-frontend
     ports:
-      - "5174:5174"
+      - "3001:5174"  # Changed host port to 3001 to bypass Windows port blocking
     volumes:
       - ./admin-frontend:/app
       - /app/node_modules
