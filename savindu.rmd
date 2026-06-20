@@ -1,0 +1,165 @@
+Files/Folders Savindu needs to add
+backend/app/agents/
+├── __init__.py
+├── intake_triage_agent.py
+├── hierarchical_rag_agent.py
+├── sequence_planner_agent.py
+├── crowd_loop_agent.py
+└── response_generator_agent.py
+
+backend/app/rag/
+├── __init__.py
+├── chunker.py
+├── retriever.py
+├── source_ranker.py
+└── knowledge_loader.py
+
+backend/app/integrations/
+├── __init__.py
+└── gemini_client.py
+
+backend/app/services/
+├── service_finder.py
+├── checklist_generator.py
+└── visitguard_score.py
+Main responsibility
+
+Savindu is responsible for the AI brain of PrajaNavigator AI. This includes service identification, RAG retrieval, AI response generation, checklist generation, and visit-readiness reasoning.
+
+Step-by-step tasks
+Step 1 — Gemini API integration
+
+Create backend/app/integrations/gemini_client.py.
+
+Tasks:
+
+Read GEMINI_API_KEY from .env.
+Create a reusable function to call Gemini.
+Return clean text/JSON response to backend.
+
+Expected function:
+
+def ask_gemini(prompt: str) -> str:
+    pass
+Step 2 — Intake & Triage Agent
+
+Create backend/app/agents/intake_triage_agent.py.
+
+Tasks:
+
+Take citizen’s natural-language request.
+Detect service intent.
+Detect language style: English / Sinhala / mixed.
+Extract district if available.
+Return structured JSON.
+
+Example output:
+
+{
+  "service_intent": "NIC renewal",
+  "district": "Matara",
+  "language": "mixed",
+  "missing_details": ["current_location", "documents_available"]
+}
+Step 3 — RAG Retriever
+
+Create backend/app/rag/retriever.py.
+
+Tasks:
+
+Search service requirements from backend/database or available source text.
+Return most relevant requirement chunks.
+Keep output simple and structured.
+
+Example output:
+
+{
+  "matched_service": "NIC Renewal",
+  "required_documents": ["Birth certificate", "Old NIC", "Photograph"],
+  "office_type": "Divisional Secretariat",
+  "notes": "District-level requirements may vary."
+}
+Step 4 — Source Ranking / Hierarchical RAG
+
+Create backend/app/rag/source_ranker.py.
+
+Tasks:
+
+Rank information by source priority:
+Official service rules
+District/office notes
+Verified community updates
+If conflicting information exists, mark it as “needs verification”.
+Step 5 — Sequence Planner Agent
+
+Create backend/app/agents/sequence_planner_agent.py.
+
+Tasks:
+
+Generate step-by-step process path.
+Include documents, office/counter, and next actions.
+
+Example:
+
+Step 1: Collect required documents
+Step 2: Visit Divisional Secretariat
+Step 3: Meet relevant officer/counter
+Step 4: Submit application
+Step 5: Collect receipt
+Step 6 — VisitGuard Score
+
+Create backend/app/services/visitguard_score.py.
+
+Tasks:
+
+Calculate readiness score using:
+Required documents
+User available documents
+Officer availability
+District-specific notes
+Missing critical documents
+
+Example output:
+
+{
+  "score": 72,
+  "risk_level": "Medium",
+  "main_risks": ["Affidavit missing", "Officer availability not confirmed"]
+}
+Step 7 — Checklist Generator
+
+Create backend/app/services/checklist_generator.py.
+
+Tasks:
+
+Generate final citizen checklist.
+Separate critical documents and optional documents.
+Generate “what to say at counter” phrase.
+Step 8 — Final AI Response Generator
+
+Create backend/app/agents/response_generator_agent.py.
+
+Tasks:
+
+Combine triage result + RAG result + VisitGuard score.
+Return final response to backend.
+
+Final response format:
+
+{
+  "service_name": "NIC Renewal",
+  "office": "Divisional Secretariat",
+  "required_documents": [],
+  "missing_documents": [],
+  "steps": [],
+  "visitguard_score": 75,
+  "risk_level": "Medium",
+  "counter_phrase": "I need to renew my NIC..."
+}
+Savindu final deliverables
+Working Gemini connection
+AI service identification
+RAG retrieval function
+VisitGuard score logic
+Checklist generation
+Structured AI response sent to backend
