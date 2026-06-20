@@ -171,59 +171,36 @@ const handleMockRequest = async (config) => {
 
     // Determine target officer info
     const district = currentCase.citizenData.district || 'Colombo';
+    let officeName = `${district} Divisional Secretariat Office`;
+    let roomCounter = 'Room 14, Counter 4';
+    let officerName = 'Divisional Officer in Charge';
+    let availableHours = '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)';
     
-    let formDetails = {
-      title: "Schedule II - Form A",
-      act: "Felling of Trees (Control) Act, No. 9 of 1951",
-      subtitle: "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree",
-      fieldLabel: "4. Species of Tree:",
-      fieldValue: "Jak Tree (Artocarpus heterophyllus)",
-      descLabel: "5. Description of land and reasons for the request:",
-      defaultDesc: "Requesting tree felling permit due to structural hazard"
-    };
-
-    const desc = (currentCase.citizenData.serviceNeed || currentCase.citizenData.description || '').toLowerCase();
-    if (desc.includes("nic") || desc.includes("identity")) {
-      formDetails = {
-        title: "Form M.T. 1 (DRP-V1)",
-        act: "REGISTRATION OF PERSONS ACT, NO. 32 OF 1968",
-        subtitle: "Application for Registration and Issue of a National Identity Card (NIC)",
-        fieldLabel: "4. Purpose of Application:",
-        fieldValue: "Renewal of Identity Card due to expiration or damage",
-        descLabel: "5. Personal identification details & remarks:",
-        defaultDesc: "Renewal of national identity card due to expiry of old card"
-      };
-    } else if (desc.includes("passport") || desc.includes("travel")) {
-      formDetails = {
-        title: "Form K-35 A",
-        act: "IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948",
-        subtitle: "Application for a Sri Lankan Passport / Travel Document",
-        fieldLabel: "4. Passport Category:",
-        fieldValue: "All Countries / Emergency Certificate",
-        descLabel: "5. Travel details & purpose description:",
-        defaultDesc: "Requesting normal service standard passport issue"
-      };
-    } else if (desc.includes("license") || desc.includes("driving")) {
-      formDetails = {
-        title: "Form DL-1",
-        act: "MOTOR TRAFFIC ACT, NO. 14 OF 1951",
-        subtitle: "Application for the Renewal / Issue of Driving License",
-        fieldLabel: "4. Driving Vehicle Class:",
-        fieldValue: "Class B (Light Cars & Dual Purpose Vehicles)",
-        descLabel: "5. License validity renewal justifications:",
-        defaultDesc: "Renewal of standard vehicle driving license"
-      };
-     }
-
-    currentCase.formDetails = formDetails;
+    const districtLower = district.toLowerCase();
+    if (districtLower.includes('matara')) {
+      officeName = 'Matara Divisional Secretariat Office';
+      roomCounter = 'Room 5, Main Hall';
+      officerName = 'Mrs. S. Silva (Senior Executive Officer)';
+      availableHours = '8:30 AM - 2:00 PM (Mondays and Thursdays)';
+    } else if (districtLower.includes('kandy')) {
+      officeName = 'Kandy Divisional Secretariat Office';
+      roomCounter = 'Room 12, Floor 2';
+      officerName = 'Mr. A. Bandara (Land Administration Officer)';
+      availableHours = '9:00 AM - 3:00 PM (Wednesdays and Fridays)';
+    } else if (districtLower.includes('colombo')) {
+      officeName = 'Colombo Divisional Secretariat Office';
+      roomCounter = 'Room 14, Environment & Land Branch (Counter 4)';
+      officerName = 'Mr. K. A. Perera (Assistant Divisional Secretary)';
+      availableHours = '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)';
+    }
 
     currentCase.visitPlan = {
       score,
       riskLevel,
-      officeName: `${district} Divisional Secretariat Office`,
-      roomCounter: 'Room 14, Environment & Land Branch (Counter 4)',
-      officerName: 'Mr. K. A. Perera (Assistant Divisional Secretary)',
-      availableHours: '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)',
+      officeName,
+      roomCounter,
+      officerName,
+      availableHours,
       timeline: [
         {
           step: 1,
@@ -320,6 +297,16 @@ const handleMockRequest = async (config) => {
     }
 
     const currentCase = db.cases[caseId];
+    
+    if (currentCase.documents && currentCase.documents.length >= 3) {
+      return Promise.reject({
+        response: {
+          status: 400,
+          data: { detail: 'Maximum of 3 documents can be uploaded for autofill' }
+        }
+      });
+    }
+
     const fileName = config.data instanceof FormData ? (config.data.get('file')?.name || 'uploaded_document.pdf') : 'document.pdf';
     
     // Add uploaded files representation
@@ -364,12 +351,119 @@ const handleMockRequest = async (config) => {
     return { data: { success: true, case: currentCase } };
   }
 
-  // 5. POST /api/v1/crowd-reports (Removed from mock so it always hits real DB)
-  // If we reach here for crowd-reports, we want it to actually fail instead of faking it.
+  // 4b. DELETE /api/v1/cases/{caseId}/document
+  if (url.includes('/document') && method === 'delete') {
+    let caseId = null;
+    const match = url.match(/\/cases\/([^\/]+)\/document/);
+    if (match) {
+      caseId = match[1];
+    } else {
+      const caseKeys = Object.keys(db.cases);
+      caseId = caseKeys[caseKeys.length - 1];
+    }
+
+    if (!caseId || !db.cases[caseId]) {
+      return Promise.reject({
+        response: {
+          status: 404,
+          data: { detail: 'Case not found' }
+        }
+      });
+    }
+
+    const currentCase = db.cases[caseId];
+    
+    // Extract filename from query parameters
+    let filename = '';
+    if (config.params && config.params.filename) {
+      filename = config.params.filename;
+    } else {
+      const urlObj = new URL(url, 'http://localhost');
+      filename = urlObj.searchParams.get('filename') || '';
+    }
+
+    if (!filename) {
+      return Promise.reject({
+        response: {
+          status: 400,
+          data: { detail: 'Filename parameter is required' }
+        }
+      });
+    }
+
+    const docs = currentCase.documents || [];
+    const matchingDocs = docs.filter(d => d.name === filename);
+    if (matchingDocs.length === 0) {
+      return Promise.reject({
+        response: {
+          status: 404,
+          data: { detail: `Document ${filename} not found` }
+        }
+      });
+    }
+
+    currentCase.documents = docs.filter(d => d.name !== filename);
+
+    if (currentCase.documents.length === 0) {
+      currentCase.status = 'upload';
+    }
+
+    db.cases[caseId] = currentCase;
+    saveMockDb(db);
+
+    return { data: { success: true, case: currentCase } };
+  }
+
+  // 5. POST /api/v1/crowd-reports
   if (url.includes('/api/v1/crowd-reports') && method === 'post') {
     return { status: 500, data: { message: 'Real backend unavailable for crowd reports.' } };
   }
 
+  // 6. POST /api/v1/ai/chat
+  if (url.includes('/api/v1/ai/chat') && method === 'post') {
+    const body = JSON.parse(config.data);
+    const { message } = body;
+    const textLower = message.toLowerCase();
+    let response = "We don't have enough information currently.";
+    
+    if (textLower.includes('nic') || textLower.includes('identity') || textLower.includes('renew')) {
+      if (textLower.includes('fee') || textLower.includes('cost') || textLower.includes('lkr')) {
+        response = "The normal fee for National Identity Card (NIC) renewal is LKR 500.";
+      } else if (textLower.includes('photo') || textLower.includes('photograph')) {
+        response = "For NIC renewal, you must submit 3 color photographs of size 1.3\" x 1.8\", certified on the reverse by the Grama Niladhari.";
+      } else if (textLower.includes('document') || textLower.includes('bring')) {
+        response = "To renew your NIC, you must bring the damaged/old NIC, standard Form M.T. 1, 3 color photographs, original birth certificate and a copy, and a marriage certificate if name has changed due to marriage.";
+      } else {
+        response = "NIC renewal requires a completed Application Form M.T. 1 certified by the Grama Niladhari, old NIC, original birth certificate + copy, and 3 certified color photographs. The official fee is LKR 500.";
+      }
+    } else if (textLower.includes('tree') || textLower.includes('felling') || textLower.includes('cut') || textLower.includes('jak')) {
+      if (textLower.includes('fee') || textLower.includes('cost') || textLower.includes('lkr')) {
+        response = "The official application processing fee for a tree felling permit is LKR 100.";
+      } else if (textLower.includes('document') || textLower.includes('bring')) {
+        response = "For a tree felling permit, you must submit the felling application form, original land deed and a certified copy, Grama Niladhari recommendation letter, and photographs showing the tree's position relative to roofs/buildings.";
+      } else {
+        response = "Under the Felling of Trees (Control) Act, felling Jak, Breadfruit, or Palmyra trees requires a permit. You must submit the application form, original land deed + certified copy, Grama Niladhari recommendation letter, and photographs. The official fee is LKR 100.";
+      }
+    } else if (textLower.includes('grama') || textLower.includes('niladhari') || textLower.includes('gn') || textLower.includes('division')) {
+      response = "You can find your local Grama Niladhari Division name and number by checking the official division directory or asking the reception desk at the Divisional Secretariat.";
+    } else if (textLower.includes('birth') && textLower.includes('certificate') && textLower.includes('correction')) {
+      response = "Correcting a birth certificate requires Form Declaration 12, original birth certificate, and supporting documents (like parents' marriage certificate, NIC copies). Submit these at the Divisional Secretariat's Registrar branch. Fee is LKR 150 (normal) or LKR 500 (one-day).";
+    } else if (textLower.includes('business') || textLower.includes('company') || textLower.includes('register')) {
+      response = "For business registration of a sole proprietorship, you must submit a completed application form, NIC copy, and land deed / rent agreement for the location at the Divisional Secretariat. The registration fee is LKR 1,000.";
+    } else if (textLower.includes('license') && (textLower.includes('driving') || textLower.includes('driver'))) {
+      response = "For driving license renewal, bring a medical certificate (Form DL-M), old license, NIC copy, and LKR 1,500 renewal fee to the Department of Motor Traffic or district office.";
+    } else if (textLower.includes('revenue') || (textLower.includes('license') && textLower.includes('vehicle'))) {
+      response = "Vehicle revenue license renewal requires the green vehicle registration book (log book), valid insurance certificate, and eco-test (emission) certificate. The fee depends on the vehicle class.";
+    } else if (textLower.includes('deed') && textLower.includes('transfer')) {
+      response = "Land deed transfer requires a new deed drafted by a licensed notary, surveyor plan, original deed copy, and local Pradeshiya Sabha clearance. Register it at the Land Registry branch of the Divisional Secretariat. Stamp duty fees apply.";
+    } else if (textLower.includes('elderly') || textLower.includes('assistance') || textLower.includes('monthly')) {
+      response = "The monthly assistance program for elderly citizens requires standard Form 44-A, Grama Niladhari income verification, and NIC copy. Submit these to the Social Services branch (Counter 9).";
+    } else if (textLower.includes('passport') || textLower.includes('travel')) {
+      response = "Passport application requires standard Form K-35 A, original birth certificate + copy, NIC + copy, and 3 color photos. Submit at the Immigration Department or selected Divisional Secretariat. Normal service is LKR 3,500; one-day service is LKR 15,000.";
+    }
+    
+    return { data: { response } };
+  }
 
   // Default fallback
   return { data: { success: true } };

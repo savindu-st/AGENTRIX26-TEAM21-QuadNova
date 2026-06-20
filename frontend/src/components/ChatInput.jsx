@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Send, Bot, User, ArrowRight, Sparkles } from 'lucide-react';
+import api from '../services/api';
+import { useCitizenCase } from '../hooks/useCitizenCase';
 
 export default function ChatInput({ mode = 'chat', onSearchSubmit }) {
+  const { caseId } = useCitizenCase() || {};
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
@@ -27,24 +30,19 @@ export default function ChatInput({ mode = 'chat', onSearchSubmit }) {
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI response logic
-    setTimeout(() => {
-      let botText = "I see. For this specific service, we highly recommend following the documents checklist. Would you like to check if there is an alternative counter?";
-      
-      const textLower = userText.toLowerCase();
-      if (textLower.includes('passport') || textLower.includes('nic') || textLower.includes('identity')) {
-        botText = "A passport can be used as proof of identity. However, Divisional Secretariat offices in Sri Lanka strongly prefer the National Identity Card (NIC). If you are using a passport, make sure you also bring a recent Grama Niladhari (GN) certificate confirming your address.";
-      } else if (textLower.includes('fee') || textLower.includes('pay') || textLower.includes('money') || textLower.includes('lkr')) {
-        botText = "Most office counters only accept cash payments. We suggest bringing exact change in Sri Lankan Rupees (LKR) to avoid delays. For tree felling, the inspection fee is LKR 750.";
-      } else if (textLower.includes('time') || textLower.includes('hour') || textLower.includes('when')) {
-        botText = "It is best to visit between 9:00 AM and 11:30 AM on Tuesdays and Wednesdays, as administrative officers and Grama Niladharis are usually available for signatures during these public days.";
-      } else if (textLower.includes('jak') || textLower.includes('tree') || textLower.includes('cut')) {
-        botText = "Permits to cut Jak (KOS) trees are regulated under the Felling of Trees Control Act. You must prove the tree is a threat to a building or is mature and needs removal, backed by the Grama Niladhari's inspection report.";
-      }
-
+    try {
+      const response = await api.post('/api/v1/ai/chat', {
+        message: userText,
+        case_id: caseId
+      });
+      const botText = response.data.response || "We don't have enough information currently.";
       setMessages((prev) => [...prev, { sender: 'bot', text: botText }]);
+    } catch (err) {
+      console.error('Error getting chat assistant response:', err);
+      setMessages((prev) => [...prev, { sender: 'bot', text: "We don't have enough information currently." }]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   const suggestions = [

@@ -95,6 +95,81 @@ def extract_form_details_from_text(context: str, detected_service: str) -> dict:
     return details
 
 
+def get_fallback_visit_plan(db_case: CitizenCase, db: Session) -> dict:
+    # Try to find an office in the user's district
+    office = db.query(TrustedSource).filter(
+        TrustedSource.source_type == "office",
+        TrustedSource.district == db_case.district
+    ).first()
+    
+    # Fallback to the first office if none found for the district
+    if not office:
+        office = db.query(TrustedSource).filter(TrustedSource.source_type == "office").first()
+        
+    if not office:
+        # Hardcoded absolute defaults if database has nothing
+        office_name = "Colombo Divisional Secretariat Office"
+        room_counter = "Room 14, Environment & Land Branch (Counter 4)"
+        officer_name = "Mr. K. A. Perera (Assistant Divisional Secretary)"
+        available_hours = "9:00 AM - 1:00 PM (Tuesdays and Wednesdays)"
+    else:
+        office_name = office.name
+        # Find officer linked to this office
+        officer = db.query(TrustedSource).filter(
+            TrustedSource.source_type == "officer",
+            TrustedSource.office_id == office.id
+        ).first()
+        if not officer:
+            room_counter = "Room 14, Counter 4"
+            officer_name = "Divisional Officer in Charge"
+            available_hours = "9:00 AM - 1:00 PM (Tuesdays and Wednesdays)"
+        else:
+            room_counter = f"Room {officer.room_number}" if officer.room_number else "Main Counter"
+            officer_name = f"{officer.name} ({officer.role})" if officer.role else officer.name
+            available_days_str = officer.available_days or "Tuesdays and Wednesdays"
+            available_time_str = officer.available_time or "9:00 AM - 1:00 PM"
+            available_hours = f"{available_time_str} ({available_days_str})"
+
+    detected_svc = db_case.detected_service or "Other Service"
+    timeline = [
+        {
+            "step": 1,
+            "title": "Reception Validation",
+            "description": "Go to the Main Reception desk, present your VisitGuard Readiness QR Code to receive your token.",
+            "status": "ready"
+        },
+        {
+            "step": 2,
+            "title": "Document Submission",
+            "description": f"Submit your verified documents at {room_counter} to Officer {officer_name.split(' (')[0]}.",
+            "status": "ready"
+        },
+        {
+            "step": 3,
+            "title": "Fee Payment",
+            "description": "Pay the application fee in cash at the cashier desk and collect your receipt.",
+            "status": "pending"
+        }
+    ]
+
+    checklist = {
+        "verified": ["National Identity Card (NIC) - Checked"],
+        "missing": ["Processing Fee (in cash)"],
+        "talkingPoints": [f"I am here to apply for {detected_svc}."]
+    }
+
+    return {
+        "score": 75,
+        "riskLevel": "Ready",
+        "officeName": office_name,
+        "roomCounter": room_counter,
+        "officerName": officer_name,
+        "availableHours": available_hours,
+        "timeline": timeline,
+        "checklist": checklist
+    }
+
+
 def run_ai_analysis(db_case: CitizenCase, db: Session) -> dict:
     ai_resp = db.query(AIResponse).filter(AIResponse.case_id == db_case.id).first()
     if not ai_resp:
@@ -357,7 +432,7 @@ Return ONLY the raw JSON block. Do not include markdown code block wrappers (lik
             
         db_case.visitguard_score = 70
         db_case.risk_level = "Ready"
-        state["visitPlan"] = None
+        state["visitPlan"] = get_fallback_visit_plan(db_case, db)
         state["formDetails"] = extract_form_details_from_text(context_block, db_case.detected_service)
         
     ai_resp.response_text = json.dumps(state)
@@ -375,3 +450,58 @@ def analyze_case(req: AIAnalyzeRequest, db: Session = Depends(get_db)):
             detail=f"Case {req.case_id} not found"
         )
     return run_ai_analysis(db_case, db)
+
+
+from pydantic import BaseModel
+from typing import Optional
+
+class AIChatRequest(BaseModel):
+    message: str
+    case_id: Optional[str] = None
+
+@ai_router.post("/chat")
+def chat_assistant(req: AIChatRequest, db: Session = Depends(get_db)):
+    # 1. Retrieve matching chunks from RAG index
+    chunks = []
+    try:
+        from backend.app.rag.retriever import retrieve_chunks
+        chunks = retrieve_chunks(req.message, limit=5)
+    except Exception as e:
+        logger.error(f"Failed to retrieve chunks for chatbot: {e}")
+        
+    context_lines = []
+    for c in chunks:
+        context_lines.append(f"- Document Context: {c['text']}")
+        
+    context_text = "\n".join(context_lines)
+    
+    # 2. Formulate prompt for Gemini
+    prompt = f"""
+You are the "PrajaNavigator Clarification Assistant". Your job is to answer the user's question about their government visit, using ONLY the following retrieved document context.
+
+Retrieved Context:
+{context_text}
+
+User Question:
+"{req.message}"
+
+Instructions:
+1. Answer the user's question accurately and concisely using ONLY facts mentioned in the Retrieved Context.
+2. If the answer to the user's question is not explicitly mentioned or cannot be directly derived from the Retrieved Context, you MUST respond with exactly: "We don't have enough information currently."
+3. Do not use any external knowledge. If the context does not have the details, do not try to search or assume; respond with "We don't have enough information currently."
+
+Answer:
+"""
+    try:
+        from backend.app.integrations.gemini_client import ask_gemini
+        response = ask_gemini(prompt).strip()
+    except Exception as e:
+        logger.error(f"Gemini call failed in chat assistant: {e}")
+        response = "We don't have enough information currently."
+        
+    # Heuristics: if response implies lack of info, convert to standard text
+    response_lower = response.lower().strip()
+    if not response or "we don't have enough information" in response_lower or "not explicitly mentioned" in response_lower or "insufficient information" in response_lower or "does not contain" in response_lower:
+        response = "We don't have enough information currently."
+        
+    return {"response": response}

@@ -1,12 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
-export default function UploadBox({ onUpload }) {
+export default function UploadBox({ onUpload, disabled = false, currentCount = 0 }) {
   const [dragActive, setDragActive] = useState(false);
   const [fileList, setFileList] = useState([]);
   const fileInputRef = useRef(null);
 
   const handleDrag = (e) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -17,6 +18,7 @@ export default function UploadBox({ onUpload }) {
   };
 
   const processFile = (file) => {
+    if (disabled) return;
     // Check file type (allow pdf, jpg, jpeg, png)
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
@@ -69,6 +71,7 @@ export default function UploadBox({ onUpload }) {
   };
 
   const handleDrop = (e) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -80,6 +83,7 @@ export default function UploadBox({ onUpload }) {
   };
 
   const handleInputChange = (e) => {
+    if (disabled) return;
     if (e.target.files && e.target.files[0]) {
       const files = Array.from(e.target.files);
       files.forEach(processFile);
@@ -87,6 +91,7 @@ export default function UploadBox({ onUpload }) {
   };
 
   const onButtonClick = () => {
+    if (disabled) return;
     fileInputRef.current?.click();
   };
 
@@ -98,39 +103,48 @@ export default function UploadBox({ onUpload }) {
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center min-h-[220px] ${
-          dragActive
-            ? 'border-emerald-600 bg-emerald-50/50 scale-[0.99] shadow-inner'
-            : 'border-gray-250 bg-white hover:bg-gray-50/50 hover:border-emerald-500'
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 flex flex-col items-center justify-center min-h-[220px] ${
+          disabled
+            ? 'border-gray-200 bg-gray-50/50 cursor-not-allowed opacity-75'
+            : dragActive
+            ? 'border-emerald-600 bg-emerald-50/50 scale-[0.99] shadow-inner cursor-pointer'
+            : 'border-gray-250 bg-white hover:bg-gray-50/50 hover:border-emerald-500 cursor-pointer'
         }`}
         onClick={onButtonClick}
       >
         <input
           ref={fileInputRef}
           type="file"
-          multiple
+          multiple={!disabled}
+          disabled={disabled}
           className="hidden"
           onChange={handleInputChange}
           accept=".pdf,.png,.jpg,.jpeg"
         />
 
-        <div className="bg-emerald-50 text-emerald-700 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform">
+        <div className={`p-4 rounded-full mb-4 transition-transform ${
+          disabled ? 'bg-gray-100 text-gray-400' : 'bg-emerald-50 text-emerald-700 hover:scale-110'
+        }`}>
           <Upload className="h-7 w-7" />
         </div>
 
         <h3 className="font-semibold text-gray-900 text-base leading-snug">
-          Drag and drop your files here
+          {disabled ? "Upload limit reached (3/3)" : "Drag and drop your files here"}
         </h3>
         <p className="text-xs text-gray-500 mt-1 mb-4">
-          Supports NIC Copy, Land Deeds, and GN Certifications (PDF, PNG, JPG up to 10MB)
+          {disabled
+            ? "You have uploaded the maximum limit of 3 files. Remove one to upload a new document."
+            : "Supports NIC Copy, Land Deeds, and GN Certifications (PDF, PNG, JPG up to 10MB)"}
         </p>
         
-        <button
-          type="button"
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
-        >
-          Select Files from computer
-        </button>
+        {!disabled && (
+          <button
+            type="button"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
+          >
+            Select Files from computer
+          </button>
+        )}
       </div>
 
       {/* File List / Queue */}

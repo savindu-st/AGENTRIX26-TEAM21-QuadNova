@@ -156,7 +156,27 @@ export function CitizenCaseProvider({ children }) {
       await analyzeCase(caseId);
     } catch (err) {
       console.error('Error uploading document:', err);
-      setError('Failed to upload document. Please try again.');
+      const detailMsg = err.response?.data?.detail || err.response?.data?.message || 'Failed to upload document. Please try again.';
+      setError(detailMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFile = async (filename) => {
+    if (!caseId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await api.delete(`/api/v1/cases/${caseId}/document`, {
+        params: { filename }
+      });
+      // After successful deletion, refresh the case state (which triggers AI analysis)
+      await analyzeCase(caseId);
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      const detailMsg = err.response?.data?.detail || err.response?.data?.message || 'Failed to delete document. Please try again.';
+      setError(detailMsg);
     } finally {
       setLoading(false);
     }
@@ -216,6 +236,7 @@ export function CitizenCaseProvider({ children }) {
         analyzeCase,
         submitAnswers,
         uploadFile,
+        deleteFile,
         submitCrowdReport,
         updateCitizenData,
         resetCase,
