@@ -9,8 +9,6 @@ export default function CitizenRequest() {
   const location = useLocation();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    address: '',
     district: '',
     serviceNeed: location.state?.serviceNeed || '',
     language: 'English',
@@ -26,7 +24,7 @@ export default function CitizenRequest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName.trim() || !formData.address.trim() || !formData.district || !formData.serviceNeed.trim()) {
+    if (!formData.district || !formData.serviceNeed.trim()) {
       return;
     }
 
@@ -60,7 +58,7 @@ export default function CitizenRequest() {
             Tell us where you are located
           </h1>
           <p className="text-sm text-slate-500 leading-relaxed max-w-md mx-auto font-semibold">
-            We need basic details like your current district and address to map local Grama Niladhari guidelines and Divisional Secretariat boundaries accurately.
+            We need basic details like your current district to map local Grama Niladhari guidelines and Divisional Secretariat boundaries accurately.
           </p>
         </div>
 
@@ -75,35 +73,7 @@ export default function CitizenRequest() {
         {/* Intake Form */}
         <form onSubmit={handleSubmit} className="bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-md space-y-6">
           
-          {/* Full Name */}
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-slate-700">
-              Your Full Name
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              placeholder="e.g. Pasindu Bandara"
-              className="w-full px-4 py-3 border border-slate-200 focus:border-teal-600 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-teal-600 transition-colors"
-            />
-          </div>
 
-          {/* Current Address */}
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-slate-700">
-              Current Residential Address
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="e.g. 102/A, Kandy Road, Kiribathgoda"
-              className="w-full px-4 py-3 border border-slate-200 focus:border-teal-600 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-teal-600 transition-colors"
-            />
-          </div>
 
           {/* District Select */}
           <div className="space-y-2">

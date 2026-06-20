@@ -22,6 +22,7 @@ export default function VisitPlan() {
     } else if (status === 'upload') {
       navigate('/upload');
     } else if (!visitPlan && !hasAnalyzed && !loading && !error) {
+      // Re-trigger analysis if details not populated
       setHasAnalyzed(true);
       analyzeCase(caseId);
     }
@@ -48,14 +49,38 @@ export default function VisitPlan() {
     );
   }
 
+  const district = citizenData?.district || 'Colombo';
+  let fallbackOffice = `${district} Divisional Secretariat Office`;
+  let fallbackRoom = 'Room 14, Counter 4';
+  let fallbackOfficer = 'Divisional Officer in Charge';
+  let fallbackHours = '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)';
+  
+  const districtLower = district.toLowerCase();
+  if (districtLower.includes('matara')) {
+    fallbackOffice = 'Matara Divisional Secretariat Office';
+    fallbackRoom = 'Room 5, Main Hall';
+    fallbackOfficer = 'Mrs. S. Silva (Senior Executive Officer)';
+    fallbackHours = '8:30 AM - 2:00 PM (Mondays and Thursdays)';
+  } else if (districtLower.includes('kandy')) {
+    fallbackOffice = 'Kandy Divisional Secretariat Office';
+    fallbackRoom = 'Room 12, Floor 2';
+    fallbackOfficer = 'Mr. A. Bandara (Land Administration Officer)';
+    fallbackHours = '9:00 AM - 3:00 PM (Wednesdays and Fridays)';
+  } else if (districtLower.includes('colombo')) {
+    fallbackOffice = 'Colombo Divisional Secretariat Office';
+    fallbackRoom = 'Room 14, Environment & Land Branch (Counter 4)';
+    fallbackOfficer = 'Mr. K. A. Perera (Assistant Divisional Secretary)';
+    fallbackHours = '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)';
+  }
+
   // Provide realistic defaults if backend analysis is loading/empty
   const plan = visitPlan || {
     score: 80,
     riskLevel: 'Ready',
-    officeName: 'Colombo Divisional Secretariat Office',
-    roomCounter: 'Room 14, Environment & Land Branch (Counter 4)',
-    officerName: 'Mr. K. A. Perera (Assistant Divisional Secretary)',
-    availableHours: '9:00 AM - 1:00 PM (Tuesdays and Wednesdays)',
+    officeName: fallbackOffice,
+    roomCounter: fallbackRoom,
+    officerName: fallbackOfficer,
+    availableHours: fallbackHours,
     timeline: [
       {
         step: 1,
@@ -66,7 +91,7 @@ export default function VisitPlan() {
       {
         step: 2,
         title: 'Divisional Secretariat Counter 4',
-        description: 'Submit your original National Identity Card and Land Deed at Counter 4 in Room 14.',
+        description: `Submit your original National Identity Card and Land Deed at ${fallbackRoom} to Officer ${fallbackOfficer.split(' (')[0]}.`,
         status: 'ready'
       },
       {
