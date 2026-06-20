@@ -8,6 +8,21 @@ export default function FormAutofill() {
   const navigate = useNavigate();
   const [downloaded, setDownloaded] = useState(false);
 
+  const details = formDetails || {
+    title: "Schedule II - Form A",
+    act: "Felling of Trees (Control) Act, No. 9 of 1951",
+    subtitle: "Application for Permission to Cut down or Remove a Jak (Kos), Breadfruit (Del), or Palmyra Tree.",
+    fieldLabel: "4. Species of Tree / Standard Field Label",
+    fieldValue: "Jak Tree (Artocarpus heterophyllus)",
+    descLabel: "9. Description of land and reasons for the request",
+    defaultDesc: "State the species of tree, location, and detailed hazard/need..."
+  };
+
+  const isTreeFelling = details.title.toLowerCase().includes("tree") || 
+                        details.title.toLowerCase().includes("schedule ii") || 
+                        details.subtitle.toLowerCase().includes("tree") || 
+                        details.subtitle.toLowerCase().includes("jak");
+
   const [formData, setFormData] = useState({
     fullName: '',
     nicNumber: '',
@@ -17,7 +32,8 @@ export default function FormAutofill() {
     district: '',
     landDeedNo: '',
     landOwner: '',
-    serviceNeed: ''
+    serviceNeed: '',
+    customField: ''
   });
 
   const displayDetails = formDetails || {
@@ -41,10 +57,11 @@ export default function FormAutofill() {
         district: citizenData.extractedDetails?.district || citizenData.district || '',
         landDeedNo: citizenData.extractedDetails?.landDeedNo || '',
         landOwner: citizenData.extractedDetails?.landOwner || '',
-        serviceNeed: citizenData.serviceNeed || ''
+        serviceNeed: citizenData.serviceNeed || '',
+        customField: citizenData.extractedDetails?.customField || details.fieldValue || ''
       });
     }
-  }, [citizenData]);
+  }, [citizenData, formDetails]);
 
   // Redirect if no case active
   useEffect(() => {
@@ -75,26 +92,33 @@ export default function FormAutofill() {
   const handleDownload = () => {
     setDownloaded(true);
     // Simulate trigger download
-    const fileContent = `${displayDetails.title.toUpperCase()}\n` +
-      `${displayDetails.act.toUpperCase()}\n` +
-      `${displayDetails.subtitle}\n\n` +
+    let fileContent = `FORM: ${details.title}\n` +
+      `ACT: ${details.act}\n` +
+      `SUBTITLE: ${details.subtitle}\n\n` +
       `Case Reference: ${caseId}\n` +
       `Applicant Name: ${formData.fullName}\n` +
       `NIC Number: ${formData.nicNumber || 'N/A'}\n` +
       `Date of Birth: ${formData.dob || 'N/A'}\n` +
       `Gender: ${formData.gender || 'N/A'}\n` +
       `Address: ${formData.address || 'N/A'}\n` +
-      `District: ${formData.district}\n` +
-      `Land Deed Number: ${formData.landDeedNo || 'N/A'}\n` +
-      `Deed Registered Owner: ${formData.landOwner || 'N/A'}\n` +
-      `Purpose: ${formData.serviceNeed}\n\n` +
+`District: ${formData.district}\n`;
+
+if (isTreeFelling) {
+    fileContent += `Land Deed Number: ${formData.landDeedNo || 'N/A'}\n` +
+        `Deed Registered Owner: ${formData.landOwner || 'N/A'}\n`;
+} else if (details.fieldLabel) {
+    fileContent += `${details.fieldLabel}: ${formData.customField || 'N/A'}\n`;
+}
+
+fileContent += `Description & Purpose: ${formData.serviceNeed}\n\n` +
+`Status: VALIDATED & SIGNED BY CIVIC AI`;
       `Status: VALIDATED & SIGNED BY CIVIC AI`;
 
     const blob = new Blob([fileContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PreFilled_Form_${caseId}.txt`;
+    link.download = `PreFilled_Form_${details.title.replace(/\s+/g, "_")}_${caseId}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -176,7 +200,7 @@ export default function FormAutofill() {
             AI Government Form Autofill
           </h1>
           <p className="text-sm text-slate-500 leading-relaxed max-w-2xl font-semibold">
-            We have pre-filled the official felling of trees application form using your uploaded documents and intake details. Review the fields below, edit any mistakes, and download your completed copy.
+            We have pre-filled the official application form using your uploaded documents and intake details. Review the fields below, edit any mistakes, and download your completed copy.
           </p>
         </div>
 
@@ -187,7 +211,7 @@ export default function FormAutofill() {
               <div>
                 <h4 className="font-extrabold text-sm text-emerald-950">Pre-filled Application Form Generated!</h4>
                 <p className="text-xs font-semibold text-emerald-800 leading-relaxed mt-0.5">
-                  Your pre-filled dossier (Form 102-B) has been downloaded. Print this out, sign it, and bring it along with your original National Identity Card (NIC) to the counters.
+                  Your pre-filled dossier ({details.title}) has been downloaded. Print this out, sign it, and bring it along with your original National Identity Card (NIC) to the counters.
                 </p>
               </div>
             </div>
@@ -206,15 +230,15 @@ export default function FormAutofill() {
           <div className="max-w-2xl mx-auto space-y-8 font-mono text-xs">
             
             {/* Header */}
-            <div className="text-center space-y-1.5 border-b border-slate-100 pb-6">
+            <div className="text-center space-y-1.5 border-b border-slate-100 pb-6 font-sans">
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">
-                Schedule II - Form A
+                {details.title}
               </h2>
               <h3 className="font-extrabold text-slate-600 uppercase tracking-wide text-[10px]">
-                Felling of Trees (Control) Act, No. 9 of 1951
+                {details.act}
               </h3>
-              <p className="text-[10px] text-slate-400 font-semibold leading-relaxed max-w-lg mx-auto font-sans">
-                Application for Permission to Cut down or Remove a protected Jak (Kos), Breadfruit (Del), or Palmyra Tree.
+              <p className="text-[10px] text-slate-400 font-semibold leading-relaxed max-w-lg mx-auto">
+                {details.subtitle}
               </p>
             </div>
 
@@ -241,22 +265,33 @@ export default function FormAutofill() {
               {/* District */}
               {renderInputField('6. District Jurisdiction', 'district', 'e.g. Colombo')}
 
-              {/* Land Deed Serial */}
-              {renderInputField('7. Land Deed / Ownership ID', 'landDeedNo', 'e.g. LD-88421-2023 (Optional)')}
+              {/* Conditional Deed fields / Custom Category field */}
+              {isTreeFelling ? (
+                <>
+                  {/* Land Deed Serial */}
+                  {renderInputField('7. Land Deed / Ownership ID', 'landDeedNo', 'e.g. LD-88421-2023 (Optional)')}
 
-              {/* Land Owner */}
-              {renderInputField('8. Deed Registered Owner Name', 'landOwner', 'e.g. Pasindu Bandara (Optional)')}
+                  {/* Land Owner */}
+                  {renderInputField('8. Deed Registered Owner Name', 'landOwner', 'e.g. Pasindu Bandara (Optional)')}
+                </>
+              ) : (
+                details.fieldLabel && (
+                  <div className="md:col-span-2">
+                    {renderInputField(details.fieldLabel, 'customField', 'State details...')}
+                  </div>
+                )
+              )}
 
               {/* Description / Purpose */}
               <div className="md:col-span-2 space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  9. Description of land and reasons for the request
+                  {details.descLabel}
                 </label>
                 <textarea
                   rows={3}
                   value={formData.serviceNeed}
                   onChange={(e) => setFormData({ ...formData, serviceNeed: e.target.value })}
-                  placeholder="State the species of tree, location, and detailed hazard/need..."
+                  placeholder={details.defaultDesc}
                   className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-slate-200 text-slate-800 focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-colors"
                 />
               </div>
