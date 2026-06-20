@@ -1,3 +1,4 @@
-from sqlalchemy.ext.declarative import declarative_base
+# PrajaNavigator AI - base.py
 
-Base = declarative_base()
+# TODO: Implement base logic
+
