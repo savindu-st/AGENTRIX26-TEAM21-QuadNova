@@ -36,6 +36,16 @@ export default function FormAutofill() {
     customField: ''
   });
 
+  const displayDetails = formDetails || {
+    title: 'Schedule II - Form A',
+    act: 'Felling of Trees (Control) Act, No. 9 of 1951',
+    subtitle: 'Application for Permission to Cut down or Remove a protected Jak (Kos), Breadfruit (Del), or Palmyra Tree.',
+    fieldLabel: '4. Species of Tree:',
+    fieldValue: 'Jak Tree (Artocarpus heterophyllus)',
+    descLabel: '9. Description of land and reasons for the request',
+    defaultDesc: 'Requesting tree felling permit due to structural hazard'
+  };
+
   useEffect(() => {
     if (citizenData) {
       setFormData({
@@ -91,16 +101,17 @@ export default function FormAutofill() {
       `Date of Birth: ${formData.dob || 'N/A'}\n` +
       `Gender: ${formData.gender || 'N/A'}\n` +
       `Address: ${formData.address || 'N/A'}\n` +
-      `District: ${formData.district}\n`;
+`District: ${formData.district}\n`;
 
-    if (isTreeFelling) {
-      fileContent += `Land Deed Number: ${formData.landDeedNo || 'N/A'}\n` +
+if (isTreeFelling) {
+    fileContent += `Land Deed Number: ${formData.landDeedNo || 'N/A'}\n` +
         `Deed Registered Owner: ${formData.landOwner || 'N/A'}\n`;
-    } else if (details.fieldLabel) {
-      fileContent += `${details.fieldLabel}: ${formData.customField || 'N/A'}\n`;
-    }
+} else if (details.fieldLabel) {
+    fileContent += `${details.fieldLabel}: ${formData.customField || 'N/A'}\n`;
+}
 
-    fileContent += `Description & Purpose: ${formData.serviceNeed}\n\n` +
+fileContent += `Description & Purpose: ${formData.serviceNeed}\n\n` +
+`Status: VALIDATED & SIGNED BY CIVIC AI`;
       `Status: VALIDATED & SIGNED BY CIVIC AI`;
 
     const blob = new Blob([fileContent], { type: 'text/plain' });
