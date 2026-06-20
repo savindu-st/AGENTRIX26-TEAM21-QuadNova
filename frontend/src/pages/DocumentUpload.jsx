@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCitizenCase } from '../hooks/useCitizenCase';
 import UploadBox from '../components/UploadBox';
 import ResultCard from '../components/ResultCard';
-import { FileUp, ArrowRight, Loader2, AlertCircle, ShieldAlert, FileText, CheckCircle2 } from 'lucide-react';
+import { FileUp, ArrowRight, Loader2, AlertCircle, ShieldAlert, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function DocumentUpload() {
   const { uploadFile, updateCitizenData, loading, error, caseId, citizenData } = useCitizenCase();
@@ -150,6 +150,64 @@ export default function DocumentUpload() {
                   Drop a clear photograph or scan of your National Identity Card (NIC) or Birth Certificate. Our civic AI automatically extracts the name, address, and ID registration token.
                 </p>
                 <UploadBox onUpload={handleFileUpload} />
+
+                {/* AI Extracted Profile Preview Card */}
+                {citizenData?.extractedDetails && (
+                  <div className="bg-emerald-50/40 border border-emerald-250/30 rounded-2xl p-5 mt-4 space-y-4 animate-fade-in">
+                    <h4 className="font-extrabold text-emerald-950 text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-emerald-600 animate-pulse" />
+                      AI OCR Extraction Results
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
+                      {citizenData.extractedDetails.fullName && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Full Name</span>
+                          <span className="text-slate-800 font-bold">{citizenData.extractedDetails.fullName}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.nicNumber && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">NIC Number</span>
+                          <span className="text-slate-800 font-bold">{citizenData.extractedDetails.nicNumber}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.dob && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Date of Birth</span>
+                          <span className="text-slate-800 font-bold">{citizenData.extractedDetails.dob}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.gender && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Gender</span>
+                          <span className="text-slate-800 font-bold">{citizenData.extractedDetails.gender}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.address && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm sm:col-span-2">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Residential Address</span>
+                          <span className="text-slate-800 font-bold">{citizenData.extractedDetails.address}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.landDeedNo && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Land Deed Serial</span>
+                          <span className="text-slate-800 font-bold text-emerald-800">{citizenData.extractedDetails.landDeedNo}</span>
+                        </div>
+                      )}
+                      {citizenData.extractedDetails.landOwner && (
+                        <div className="bg-white/85 p-3 rounded-xl border border-emerald-100/50 shadow-sm">
+                          <span className="text-slate-400 uppercase tracking-wider block text-[9px] mb-0.5">Deed Registered Owner</span>
+                          <span className="text-slate-800 font-bold text-emerald-800">{citizenData.extractedDetails.landOwner}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-emerald-850 bg-emerald-100/40 p-2.5 rounded-lg border border-emerald-100 font-semibold">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <span>These details have been saved to your profile and will be automatically filled into your application forms.</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm space-y-5">

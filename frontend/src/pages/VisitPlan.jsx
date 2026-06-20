@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCitizenCase } from '../hooks/useCitizenCase';
 import ResultCard from '../components/ResultCard';
@@ -9,10 +9,11 @@ import ChatInput from '../components/ChatInput';
 import { Calendar, ArrowRight, Printer, AlertTriangle, MessageSquare, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 
 export default function VisitPlan() {
-  const { visitPlan, caseId, loading, error, analyzeCase, status } = useCitizenCase();
+  const { visitPlan, caseId, citizenData, loading, error, analyzeCase, status } = useCitizenCase();
   const navigate = useNavigate();
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
-  // Redirect if no case active or based on case status
+  // Redirect if no case active
   useEffect(() => {
     if (!caseId) {
       navigate('/request');
@@ -20,11 +21,11 @@ export default function VisitPlan() {
       navigate('/follow-up');
     } else if (status === 'upload') {
       navigate('/upload');
-    } else if (!visitPlan) {
-      // Re-trigger analysis if details not populated
+    } else if (!visitPlan && !hasAnalyzed && !loading && !error) {
+      setHasAnalyzed(true);
       analyzeCase(caseId);
     }
-  }, [caseId, visitPlan, status, navigate, analyzeCase]);
+  }, [caseId, visitPlan, status, navigate, analyzeCase, hasAnalyzed, loading, error]);
 
   const handleGoToChecklist = () => {
     navigate('/checklist');
@@ -32,6 +33,10 @@ export default function VisitPlan() {
 
   const handleGoToUpload = () => {
     navigate('/upload');
+  };
+
+  const handleGoToAutofill = () => {
+    navigate('/autofill');
   };
 
   if (loading && !visitPlan) {
@@ -115,24 +120,45 @@ export default function VisitPlan() {
             <ProcessTimeline steps={plan.timeline} />
 
             {/* AI Form Autofill Trigger Card */}
-            <div className="bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-100/60 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
-              <div className="space-y-1">
-                <h4 className="font-bold text-teal-950 text-base leading-snug">
-                  Would you like our AI to automatically prepare and fill out your official application forms right now?
-                </h4>
-                <p className="text-xs text-teal-850 mt-1 font-medium leading-relaxed">
-                  Skip the manual writing. Upload a photo of your NIC or type your details manually to generate the completed Schedule II - Form A ready to print.
-                </p>
+            {citizenData?.extractedDetails ? (
+              <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100/60 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-teal-950 text-base leading-snug">
+                    Your pre-filled government forms are ready!
+                  </h4>
+                  <p className="text-xs text-teal-850 mt-1 font-medium leading-relaxed">
+                    We have successfully compiled your application paperwork using your uploaded documents. Click below to review and download.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleGoToAutofill}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                >
+                  Review Pre-filled Form
+                  <ArrowRight className="h-4.5 w-4.5" />
+                </button>
               </div>
-              
-              <button
-                onClick={handleGoToUpload}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap animate-pulse hover:animate-none"
-              >
-                Autofill Form Now
-                <ArrowRight className="h-4.5 w-4.5" />
-              </button>
-            </div>
+            ) : (
+              <div className="bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-100/60 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-teal-950 text-base leading-snug">
+                    Would you like our AI to automatically prepare and fill out your official application forms right now?
+                  </h4>
+                  <p className="text-xs text-teal-850 mt-1 font-medium leading-relaxed">
+                    Skip the manual writing. Upload a photo of your NIC or type your details manually to generate the completed Schedule II - Form A ready to print.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleGoToUpload}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap animate-pulse hover:animate-none"
+                >
+                  Autofill Form Now
+                  <ArrowRight className="h-4.5 w-4.5" />
+                </button>
+              </div>
+            )}
 
             {/* Action dossier notice & button */}
             <div className="bg-white border border-slate-200/60 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">

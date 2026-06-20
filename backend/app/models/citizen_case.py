@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, JSON
 from datetime import datetime
 from backend.app.database.base import Base
 
@@ -13,4 +13,6 @@ class CitizenCase(Base):
     status = Column(String, default="clarification", nullable=False)
     visitguard_score = Column(Integer, default=70)
     risk_level = Column(String, default="Ready")
+    extracted_details = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
