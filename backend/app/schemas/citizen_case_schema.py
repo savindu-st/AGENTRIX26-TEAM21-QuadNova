@@ -2,19 +2,25 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-class CitizenCaseBase(BaseModel):
-    citizen_name: str
+class CitizenCaseCreate(BaseModel):
+    fullName: Optional[str] = None
+    citizen_name: Optional[str] = None
     district: str
-    description: str
-
-class CitizenCaseCreate(CitizenCaseBase):
+    address: Optional[str] = ""
+    serviceNeed: Optional[str] = None
+    description: Optional[str] = None
+    language: Optional[str] = "English"
+    availableDocuments: Optional[List[str]] = []
     available_documents: Optional[List[str]] = []
 
 class CitizenCaseUpdateStatus(BaseModel):
     status: str
 
-class CitizenCaseResponse(CitizenCaseBase):
+class CitizenCaseResponse(BaseModel):
     id: str
+    citizen_name: str
+    district: str
+    description: str
     detected_service: Optional[str] = None
     status: str
     visitguard_score: int

@@ -91,10 +91,170 @@ def ask_gemini(prompt: str) -> str:
 
 def get_mock_completion(prompt: str) -> str:
     """
-    Generates standard helper responses based on prompt keywords when in mock mode.
+    Generates standard helper responses or a mock structured JSON block matching the prompt
+    requirements (for cases, visit plans, or document lists) when in mock mode.
     """
     prompt_lower = prompt.lower()
     
+    # 1. Check if the prompt requests a JSON response (e.g. final plan or document list)
+    if "json" in prompt_lower or "visitplan" in prompt_lower:
+        # Check if it's the required documents JSON list
+        if "required documents" in prompt_lower or "list of strings" in prompt_lower:
+            if "nic" in prompt_lower or "identity" in prompt_lower:
+                return '["NIC Front & Back", "Original Birth Certificate", "Grama Niladhari Letter"]'
+            elif "passport" in prompt_lower:
+                return '["NIC Front & Back", "Original Birth Certificate", "Grama Niladhari Letter", "Color Photos (3 copies)"]'
+            elif "tree" in prompt_lower or "felling" in prompt_lower:
+                return '["Original Land Deed Copy", "Grama Niladhari Recommendation Letter", "Tree Position Photographs"]'
+            elif "license" in prompt_lower or "driving" in prompt_lower:
+                return '["Current Driving License", "Medical Certificate (Form L9)", "NIC Copy"]'
+            else:
+                return '["NIC Front & Back", "Grama Niladhari Letter"]'
+                
+        # Otherwise, generate full dynamic plan and form details JSON
+        # Detect service
+        detected_service = "Tree Felling Permit"
+        if "nic" in prompt_lower or "identity" in prompt_lower:
+            detected_service = "National Identity Card (NIC) Renewal"
+        elif "passport" in prompt_lower or "travel" in prompt_lower:
+            detected_service = "Passport Application"
+        elif "license" in prompt_lower or "driving" in prompt_lower:
+            detected_service = "Driving License Renewal"
+        elif "business" in prompt_lower:
+            detected_service = "Local Business Registration"
+        elif "birth" in prompt_lower:
+            detected_service = "Birth Certificate Name Correction"
+            
+        # Parse form details dynamically from prompt context
+        import re
+        title_match = re.search(r'(?:Form Title|Form Name)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        act_match = re.search(r'(?:Form Act|Act)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        subtitle_match = re.search(r'(?:Form Subtitle|Subtitle)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        field_label_match = re.search(r'(?:Form Field Label|Field Label)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        field_value_match = re.search(r'(?:Form Field Value|Field Value)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        desc_label_match = re.search(r'(?:Form Description Label|Description Label)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        default_desc_match = re.search(r'(?:Form Default Description|Default Description)[\s\*\:\-]+([^\n\r]+)', prompt, re.IGNORECASE)
+        
+        form_title = title_match.group(1).strip().strip("*") if title_match else ""
+        form_act = act_match.group(1).strip().strip("*") if act_match else ""
+        form_subtitle = subtitle_match.group(1).strip().strip("*") if subtitle_match else ""
+        form_field_label = field_label_match.group(1).strip().strip("*") if field_label_match else ""
+        form_field_value = field_value_match.group(1).strip().strip("*") if field_value_match else ""
+        form_desc_label = desc_label_match.group(1).strip().strip("*") if desc_label_match else ""
+        form_default_desc = default_desc_match.group(1).strip().strip("*") if default_desc_match else ""
+        
+        # Fallbacks if regex didn't find them in prompt context
+        svc_lower = detected_service.lower()
+        if not form_title:
+            if "nic" in svc_lower:
+                form_title = "Form M.T. 1 (DRP-V1)"
+                form_act = "REGISTRATION OF PERSONS ACT, NO. 32 OF 1968"
+                form_subtitle = "Application for Registration and Issue of a National Identity Card (NIC)"
+                form_field_label = "4. Purpose of Application:"
+                form_field_value = "Renewal of Identity Card due to expiration or damage"
+                form_desc_label = "5. Personal identification details & remarks:"
+                form_default_desc = "Renewal of national identity card due to expiry of old card"
+            elif "passport" in svc_lower:
+                form_title = "Form K-35 A"
+                form_act = "IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948"
+                form_subtitle = "Application for a Sri Lankan Passport / Travel Document"
+                form_field_label = "4. Passport Category:"
+                form_field_value = "All Countries / Emergency Certificate"
+                form_desc_label = "5. Travel details & purpose description:"
+                form_default_desc = "Requesting normal service standard passport issue"
+            elif "tree" in svc_lower:
+                form_title = "Schedule II - Form A"
+                form_act = "Felling of Trees (Control) Act, No. 9 of 1951"
+                form_subtitle = "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree"
+                form_field_label = "4. Species of Tree:"
+                form_field_value = "Jak Tree (Artocarpus heterophyllus)"
+                form_desc_label = "5. Description of land and reasons for the request:"
+                form_default_desc = "Requesting tree felling permit due to structural hazard"
+            elif "license" in svc_lower:
+                form_title = "Form DL-1"
+                form_act = "MOTOR TRAFFIC ACT, NO. 14 OF 1951"
+                form_subtitle = "Application for the Renewal / Issue of Driving License"
+                form_field_label = "4. Driving Vehicle Class:"
+                form_field_value = "Class B (Light Cars & Dual Purpose Vehicles)"
+                form_desc_label = "5. License validity renewal justifications:"
+                form_default_desc = "Renewal of standard vehicle driving license"
+            else:
+                form_title = "Form Section 27"
+                form_act = "PUBLIC SERVICE ACT"
+                form_subtitle = "Public Service Application"
+                form_field_label = "4. Category:"
+                form_field_value = "Standard Application"
+                form_desc_label = "5. Detailed remarks & description:"
+                form_default_desc = "Standard public service application request"
+                
+        # Match available officers/offices from context if possible
+        office_name = "Colombo Divisional Secretariat Office"
+        officer_name = "Mr. K. A. Perera"
+        room_counter = "Room 14 (Counter 4)"
+        available_hours = "Tuesdays and Wednesdays, 9:00 AM - 1:00 PM"
+        
+        if "matara" in prompt_lower:
+            office_name = "Matara Divisional Secretariat Office"
+            officer_name = "Mrs. S. Silva"
+            room_counter = "Room 5 (Main Hall)"
+            available_hours = "Mondays and Thursdays, 8:30 AM - 2:00 PM"
+        elif "kandy" in prompt_lower:
+            office_name = "Kandy Divisional Secretariat Office"
+            officer_name = "Mr. A. Bandara"
+            room_counter = "Room 12 (Floor 2)"
+            available_hours = "Wednesdays and Fridays, 9:00 AM - 3:00 PM"
+            
+        import json
+        res = {
+            "detected_service": detected_service,
+            "visitguard_score": 85,
+            "risk_level": "Ready",
+            "form_details": {
+                "title": form_title,
+                "act": form_act,
+                "subtitle": form_subtitle,
+                "fieldLabel": form_field_label,
+                "fieldValue": form_field_value,
+                "descLabel": form_desc_label,
+                "defaultDesc": form_default_desc
+            },
+            "visitPlan": {
+                "score": 85,
+                "riskLevel": "Ready",
+                "officeName": office_name,
+                "roomCounter": room_counter,
+                "officerName": officer_name,
+                "availableHours": available_hours,
+                "timeline": [
+                    {
+                        "step": 1,
+                        "title": "Reception Verification",
+                        "description": "Go to the reception counter and present your QR code to get your ticket.",
+                        "status": "ready"
+                    },
+                    {
+                        "step": 2,
+                        "title": "Officer Evaluation",
+                        "description": f"Go to {room_counter} and present your documents to {officer_name}.",
+                        "status": "ready"
+                    },
+                    {
+                        "step": 3,
+                        "title": "Submission & Fee Payment",
+                        "description": "Pay the official fees and get your copy of the stamped application receipt.",
+                        "status": "ready"
+                    }
+                ],
+                "checklist": {
+                    "verified": ["NIC Front & Back - OCR Verified", "Birth Certificate - Match Confirmed"],
+                    "missing": [],
+                    "talkingPoints": [f"I am here to submit my application for {detected_service}.", f"All of my documents are verified."]
+                }
+            }
+        }
+        return json.dumps(res, ensure_ascii=False)
+
+    # Standard plain text responses if not JSON
     if "nic" in prompt_lower:
         return (
             "Based on the processed query regarding National Identity Card (NIC) renewal, "
@@ -115,4 +275,5 @@ def get_mock_completion(prompt: str) -> str:
             "running without an active API key. Please configure GEMINI_API_KEY in the environment "
             "to enable live LLM generation. Prompt received: " + prompt[:100] + "..."
         )
+
 

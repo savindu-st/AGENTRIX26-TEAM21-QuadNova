@@ -9,18 +9,22 @@ import ChatInput from '../components/ChatInput';
 import { Calendar, ArrowRight, Printer, AlertTriangle, MessageSquare, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 
 export default function VisitPlan() {
-  const { visitPlan, caseId, loading, error, analyzeCase } = useCitizenCase();
+  const { visitPlan, caseId, loading, error, analyzeCase, status } = useCitizenCase();
   const navigate = useNavigate();
 
-  // Redirect if no case active
+  // Redirect if no case active or based on case status
   useEffect(() => {
     if (!caseId) {
       navigate('/request');
+    } else if (status === 'clarification') {
+      navigate('/follow-up');
+    } else if (status === 'upload') {
+      navigate('/upload');
     } else if (!visitPlan) {
       // Re-trigger analysis if details not populated
       analyzeCase(caseId);
     }
-  }, [caseId, visitPlan, navigate, analyzeCase]);
+  }, [caseId, visitPlan, status, navigate, analyzeCase]);
 
   const handleGoToChecklist = () => {
     navigate('/checklist');

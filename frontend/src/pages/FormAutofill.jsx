@@ -18,8 +18,25 @@ export default function FormAutofill() {
   };
 
   const handleDownload = () => {
-    alert('Downloading pre-filled PDF Form (Form 102-B)...');
+    alert('Downloading pre-filled PDF Form...');
   };
+
+  // Retrieve form details dynamically from the AI agent's search analysis response
+  const formDetails = citizenData?.formDetails || {
+    title: "Schedule II - Form A",
+    act: "Felling of Trees (Control) Act, No. 9 of 1951",
+    subtitle: "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree",
+    fieldLabel: "4. Species of Tree:",
+    fieldValue: "Jak Tree (Artocarpus heterophyllus)",
+    descLabel: "5. Description of land and reasons for the request:",
+    defaultDesc: "Requesting tree felling permit due to structural hazard"
+  };
+
+  const detectedService = citizenData?.detected_service || 'Tree Felling Permit';
+
+
+  const citizenName = citizenData?.citizen_name || citizenData?.fullName || 'Pasindu Bandara';
+  const description = citizenData?.description || citizenData?.serviceNeed || formDetails.defaultDesc;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -48,7 +65,7 @@ export default function FormAutofill() {
           AI Government Form Autofill
         </h1>
         <p className="text-sm text-gray-500 leading-relaxed font-medium">
-          PrajaNavigator AI has automatically filled out the official felling of trees application form using your intake answers. Download, print, sign, and bring it to Counter 4.
+          PrajaNavigator AI has automatically filled out the official {detectedService.toLowerCase()} form using your intake answers. Download, print, sign, and bring it to Counter 4.
         </p>
       </div>
 
@@ -67,13 +84,13 @@ export default function FormAutofill() {
           {/* Header */}
           <div className="text-center space-y-1 border-b border-gray-200 pb-4">
             <h2 className="text-sm font-bold text-gray-900 uppercase">
-              Schedule II - Form A
+              {formDetails.title}
             </h2>
             <h3 className="font-bold text-gray-700 uppercase">
-              Felling of Trees (Control) Act, No. 9 of 1951
+              {formDetails.act}
             </h3>
             <p className="text-[10px] text-gray-500">
-              Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree
+              {formDetails.subtitle}
             </p>
           </div>
 
@@ -81,7 +98,7 @@ export default function FormAutofill() {
           <div className="space-y-4">
             <div className="flex border-b border-gray-150 pb-2">
               <span className="w-48 font-bold text-gray-500">1. Name of Applicant:</span>
-              <span className="font-bold text-gray-900">{citizenData?.fullName || 'Pasindu Bandara'}</span>
+              <span className="font-bold text-gray-900">{citizenName}</span>
             </div>
 
             <div className="flex border-b border-gray-150 pb-2">
@@ -95,14 +112,14 @@ export default function FormAutofill() {
             </div>
 
             <div className="flex border-b border-gray-150 pb-2">
-              <span className="w-48 font-bold text-gray-500">4. Species of Tree:</span>
-              <span className="font-bold text-gray-900">Jak Tree (Artocarpus heterophyllus)</span>
+              <span className="w-48 font-bold text-gray-500">{formDetails.fieldLabel}</span>
+              <span className="font-bold text-gray-900">{formDetails.fieldValue}</span>
             </div>
 
             <div className="space-y-2 border-b border-gray-150 pb-2">
-              <span className="font-bold text-gray-500 block">5. Description of land and reasons for the request:</span>
+              <span className="font-bold text-gray-500 block">{formDetails.descLabel}</span>
               <p className="font-bold text-gray-900 bg-gray-50 p-2.5 rounded border border-gray-150 font-sans italic">
-                "{citizenData?.serviceNeed || 'Requesting tree felling permit due to structural hazard'}"
+                "{description}"
               </p>
             </div>
 
