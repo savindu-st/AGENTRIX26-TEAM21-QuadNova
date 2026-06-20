@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCitizenCase } from '../hooks/useCitizenCase';
+import { useTranslation } from 'react-i18next';
 import { ArrowRight, Landmark, FileText, CheckCircle, ShieldAlert, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const { resetCase } = useCitizenCase();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
 
   const handleSearchSubmit = (e) => {
@@ -14,12 +16,6 @@ export default function Home() {
     resetCase();
     navigate('/request', { state: { serviceNeed: input } });
   };
-
-  const suggestions = [
-    "I need a permit to cut down a dangerous Jak tree in my garden.",
-    "I want to request a Grama Niladhari residence certificate.",
-    "How do I verify a land ownership deed at the divisional office?"
-  ];
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-slate-800 flex flex-col font-sans">
@@ -34,16 +30,16 @@ export default function Home() {
           {/* Empathetic badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold shadow-sm mx-auto">
             <Sparkles className="h-4 w-4" />
-            <span>Sri Lanka Citizen Support Navigator</span>
+            <span>{t('home.badge')}</span>
           </div>
 
           {/* Core Hook */}
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-              What do you want to <span className="text-teal-600">get done</span> today?
+              {t('home.welcome')}
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
-              Describe your government paperwork or visit need in plain English, Sinhala, or Tamil. We'll outline your correct roadmap and prepare your forms instantly.
+              {t('home.subtitle')}
             </p>
           </div>
 
@@ -54,21 +50,21 @@ export default function Home() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Describe your problem (e.g. I need to get a residency certificate)..."
+                placeholder={t('home.input_placeholder')}
                 className="flex-1 px-4 py-3 bg-transparent text-slate-800 placeholder-slate-400/80 text-base sm:text-lg focus:outline-none"
               />
               <button
                 type="submit"
                 className="inline-flex items-center gap-1.5 px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap"
               >
-                <span>Next step</span>
+                <span>{t('home.start_button')}</span>
                 <ArrowRight className="h-4.5 w-4.5" />
               </button>
             </form>
 
             {/* Quick suggestions */}
             <div className="flex flex-wrap gap-2.5 justify-center mt-5">
-              {suggestions.map((s, idx) => (
+              {[t('home.suggestions.tree'), t('home.suggestions.grama'), t('home.suggestions.deed')].map((s, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -87,9 +83,9 @@ export default function Home() {
               <Landmark className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-base leading-snug">Empathetic Public Service Help</h3>
+              <h3 className="font-bold text-slate-800 text-base leading-snug">{t('home.disclaimer_title')}</h3>
               <p className="text-sm text-slate-500 mt-1 leading-relaxed font-medium">
-                This is not a government agency. We are an independent, community-driven civic helper. We translate complicated rules into straightforward steps and fill out your paperwork automatically so you don't get rejected.
+                {t('home.disclaimer')}
               </p>
             </div>
           </div>
@@ -101,10 +97,10 @@ export default function Home() {
       <footer className="bg-white text-slate-400 py-8 border-t border-slate-100 no-print">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
           <p className="text-sm font-semibold text-slate-500">
-            &copy; 2026 PrajaNavigator AI. Designed for public service empowerment.
+            {t('home.footer_copy')}
           </p>
           <p className="text-xs text-slate-400">
-            This tool is built to assist citizens. Please verify with local authorities for formal legal mandates.
+            {t('home.footer_disclaimer')}
           </p>
         </div>
       </footer>

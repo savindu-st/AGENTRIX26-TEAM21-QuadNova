@@ -84,3 +84,13 @@
     page-break-after: avoid;
   }
 }
+
+/* ─── Sinhala Language Typography Fixes ─── */
+html[lang="si"] {
+  font-family: 'Noto Sans Sinhala', sans-serif !important;
+}
+
+/* Remove tight letter spacing that breaks Sinhala ligatures */
+html[lang="si"] .tracking-tight {
+  letter-spacing: normal !important;
+}

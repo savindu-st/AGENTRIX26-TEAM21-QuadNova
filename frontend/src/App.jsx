@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import CitizenRequest from './pages/CitizenRequest';
@@ -12,6 +13,12 @@ import CommunityUpdate from './pages/CommunityUpdate';
 import { CitizenCaseProvider } from './hooks/useCitizenCase';
 
 function App() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <CitizenCaseProvider>
       <div className="flex flex-col min-h-screen bg-[#FAF8F5] text-slate-800 antialiased selection:bg-teal-100">

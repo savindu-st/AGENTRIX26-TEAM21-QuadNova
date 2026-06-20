@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Landmark, Compass, HelpCircle, MessageSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import LanguageToggle from './LanguageToggle';
 import { useCitizenCase } from '../hooks/useCitizenCase';
 
 export default function Navbar() {
   const location = useLocation();
   const { caseId, resetCase } = useCitizenCase();
+  const { t } = useTranslation();
 
   return (
     <nav className="no-print sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-150 text-slate-800 shadow-sm">
@@ -28,7 +30,7 @@ export default function Navbar() {
                 PrajaNavigator <span className="text-teal-600">AI</span>
               </span>
               <span className="text-[10px] text-slate-400 block -mt-1 font-bold uppercase tracking-wider">
-                Citizen Support
+                {t('nav.brand_sub')}
               </span>
             </div>
           </Link>
@@ -44,7 +46,7 @@ export default function Navbar() {
               }`}
             >
               <Compass className="h-4 w-4" />
-              Home
+              {t('nav.home')}
             </Link>
             
             {caseId && (
@@ -52,7 +54,7 @@ export default function Navbar() {
                 onClick={resetCase}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
               >
-                Reset Case
+                {t('nav.reset_case')}
               </button>
             )}
 
@@ -65,7 +67,7 @@ export default function Navbar() {
               }`}
             >
               <MessageSquare className="h-4 w-4" />
-              Report Change
+              {t('nav.community_updates')}
             </Link>
           </div>
 
