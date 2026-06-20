@@ -37,8 +37,13 @@ def create_report(report_in: CrowdReportCreate, db: Session = Depends(get_db)):
 
 
 @crowd_reports_router.get("/", response_model=List[CrowdReportResponse])
-def get_reports(db: Session = Depends(get_db)):
-    return db.query(CrowdReport).all()
+def get_reports(district: Optional[str] = None, db: Session = Depends(get_db)):
+    q = db.query(CrowdReport)
+    if district:
+        q = q.join(TrustedSource, CrowdReport.office_id == TrustedSource.id, isouter=True)\
+             .filter(TrustedSource.district == district)
+    return q.order_by(CrowdReport.created_at.desc()).all()
+
 
 
 @crowd_reports_router.patch("/{report_id}/verify", response_model=CrowdReportResponse)

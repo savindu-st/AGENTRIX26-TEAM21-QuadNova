@@ -87,7 +87,7 @@ const CaseDetail = () => {
       {/* Header */}
       <div className="flex items-center mb-8">
         <button
-          onClick={() => navigate('/cases')}
+          onClick={() => navigate('/dashboard/cases')}
           className="p-2 mr-4 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 hover:text-white transition-all"
         >
           <ArrowLeft className="w-5 h-5" />

@@ -141,9 +141,13 @@ def create_case(case_in: CitizenCaseCreate, db: Session = Depends(get_db)):
 
 
 @cases_router.get("/", response_model=List[CitizenCaseResponse])
-def list_cases(db: Session = Depends(get_db)):
+def list_cases(district: Optional[str] = None, db: Session = Depends(get_db)):
     # Used by Admin dashboard
-    cases = db.query(CitizenCase).all()
+    q = db.query(CitizenCase)
+    if district:
+        q = q.filter(CitizenCase.district == district)
+    
+    cases = q.order_by(CitizenCase.created_at.desc()).all()
     # Ensure they map properly
     for c in cases:
         if not c.detected_service:

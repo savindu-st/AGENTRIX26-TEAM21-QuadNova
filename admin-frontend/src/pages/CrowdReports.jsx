@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import ReportReviewCard from '../components/ReportReviewCard';
 
 const CrowdReports = () => {
+  const { admin } = useAuth();
+  const district = admin?.city;
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +20,8 @@ const CrowdReports = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/v1/crowd-reports');
+      const params = district ? `?district=${encodeURIComponent(district)}` : '';
+      const response = await axios.get(`/api/v1/crowd-reports${params}`);
       setReports(response.data);
     } catch (error) {
       console.error("Failed to fetch reports:", error);

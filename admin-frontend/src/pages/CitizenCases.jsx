@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import RiskBadge from '../components/RiskBadge';
 import { Search, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
 const CitizenCases = () => {
+  const { admin } = useAuth();
+  const district = admin?.city;
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -20,8 +23,8 @@ const CitizenCases = () => {
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        // Attempt to fetch from your backend
-        const response = await axios.get('/api/v1/cases');
+        const params = district ? `?district=${encodeURIComponent(district)}` : '';
+        const response = await axios.get(`/api/v1/cases${params}`);
         setCases(response.data);
       } catch (error) {
         console.error("Failed to fetch cases, using mock data:", error);
@@ -99,7 +102,7 @@ const CitizenCases = () => {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => navigate(`/cases/${citizenCase.id}`)}
+                        onClick={() => navigate(`/dashboard/cases/${citizenCase.id}`)}
                         className="p-2 bg-slate-800 text-slate-400 rounded-lg hover:bg-indigo-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100 shadow-lg"
                       >
                         <Eye className="w-4 h-4" />

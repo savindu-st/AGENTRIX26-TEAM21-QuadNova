@@ -1,6 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import AdminSidebar from './components/AdminSidebar';
+import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import CitizenCases from './pages/CitizenCases';
 import CaseDetail from './pages/CaseDetail';
@@ -8,41 +10,62 @@ import ServiceManager from './pages/ServiceManager';
 import OfficeManager from './pages/OfficeManager';
 import OfficerAvailability from './pages/OfficerAvailability';
 import CrowdReports from './pages/CrowdReports';
+import Landing from './pages/Landing';
+import KnowledgeBase from './pages/KnowledgeBase';
 
+// Protected layout — redirects to /login if not authenticated
+function AdminLayout() {
+  const { isLoggedIn } = useAuth();
 
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <div className="flex h-screen w-full bg-[#0B1120] overflow-hidden">
+      <AdminSidebar />
+      <main className="flex-1 overflow-y-auto min-w-0">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/cases" element={<CitizenCases />} />
+          <Route path="/cases/:id" element={<CaseDetail />} />
+          <Route path="/services" element={<ServiceManager />} />
+          <Route path="/offices" element={<OfficeManager />} />
+          <Route path="/officers" element={<OfficerAvailability />} />
+          <Route path="/reports" element={<CrowdReports />} />
+          <Route path="/knowledge" element={<KnowledgeBase />} />
+          <Route path="*" element={<div className="p-8 text-slate-400">Page coming soon...</div>} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+// Public layout guard — redirect to /dashboard if already logged in
+function PublicGuard({ children }) {
+  const { isLoggedIn } = useAuth();
+  if (isLoggedIn) return <Navigate to="/dashboard" replace />;
+  return children;
+}
 
 function App() {
   return (
-    <BrowserRouter>
-      {/* App Layout Container */}
-      <div className="flex h-screen w-full bg-[#0B1120] overflow-hidden selection:bg-indigo-500/30">
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<PublicGuard><Landing /></PublicGuard>} />
+          <Route path="/login" element={<PublicGuard><AdminLogin /></PublicGuard>} />
 
-        {/* Sidebar fixed on the left */}
-        <AdminSidebar />
+          {/* Protected routes */}
+          <Route path="/dashboard/*" element={<AdminLayout />} />
 
-        {/* Main Content scrollable area */}
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            {/* We will add other routes here later */}
-            <Route path="/cases" element={<CitizenCases />} />
-            <Route path="/cases/:id" element={<CaseDetail />} />
-            <Route path="/services" element={<ServiceManager />} />
-            <Route path="/offices" element={<OfficeManager />} />
-            <Route path="/officers" element={<OfficerAvailability />} />
-            <Route path="/reports" element={<CrowdReports />} />
-
-
-
-            <Route path="*" element={<div className="p-8 text-white">Page coming soon...</div>} />
-          </Routes>
-
-        </main>
-
-      </div>
-    </BrowserRouter>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
 export default App;
-
