@@ -14,7 +14,7 @@ import { CitizenCaseProvider } from './hooks/useCitizenCase';
 function App() {
   return (
     <CitizenCaseProvider>
-      <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800 antialiased selection:bg-emerald-100">
+      <div className="flex flex-col min-h-screen bg-[#FAF8F5] text-slate-800 antialiased selection:bg-teal-100">
         {/* Navigation Bar */}
         <Navbar />
         

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Send, Bot, User, CornerDownLeft } from 'lucide-react';
+import { Send, Bot, User, ArrowRight, Sparkles } from 'lucide-react';
 
-export default function ChatInput() {
+export default function ChatInput({ mode = 'chat', onSearchSubmit }) {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
@@ -14,6 +14,13 @@ export default function ChatInput() {
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    if (mode === 'search') {
+      if (onSearchSubmit) {
+        onSearchSubmit(input);
+      }
+      return;
+    }
 
     const userText = input;
     setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
@@ -39,6 +46,49 @@ export default function ChatInput() {
       setIsTyping(false);
     }, 1000);
   };
+
+  const suggestions = [
+    "I need a permit to cut down a dangerous jack tree in my garden.",
+    "I want to request a Grama Niladhari residence certificate.",
+    "How do I verify a land ownership deed?"
+  ];
+
+  if (mode === 'search') {
+    return (
+      <div className="w-full max-w-3xl mx-auto space-y-4">
+        <form onSubmit={handleSend} className="relative flex items-center bg-white/10 hover:bg-white/15 focus-within:bg-white/20 border border-emerald-500/30 rounded-2xl p-2 shadow-2xl backdrop-blur-md transition-all">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your request in plain language..."
+            className="flex-1 px-4 py-3 bg-transparent text-white placeholder-emerald-200/50 text-base md:text-lg focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="inline-flex items-center gap-1.5 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold rounded-xl shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+          >
+            <span>Next</span>
+            <ArrowRight className="h-4.5 w-4.5" />
+          </button>
+        </form>
+
+        {/* Suggestions */}
+        <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+          {suggestions.map((s, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setInput(s)}
+              className="text-xs px-3.5 py-1.5 rounded-full bg-emerald-950/45 border border-emerald-800/40 text-emerald-300 hover:text-white hover:bg-emerald-900/40 transition-all font-medium cursor-pointer"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col border border-emerald-100 rounded-xl bg-white shadow-sm overflow-hidden h-[380px]">
