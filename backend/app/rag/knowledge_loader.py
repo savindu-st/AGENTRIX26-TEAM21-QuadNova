@@ -115,7 +115,7 @@ def load_database_crowd_reports() -> List[Dict[str, Any]]:
                     district = None
                     if row.office_id:
                         office_q = connection.execute(
-                            text("SELECT name, district FROM offices WHERE id = :oid"), 
+                            text("SELECT name, district FROM trusted_sources WHERE id = :oid AND source_type = 'office'"), 
                             {"oid": row.office_id}
                         ).fetchone()
                         if office_q:
