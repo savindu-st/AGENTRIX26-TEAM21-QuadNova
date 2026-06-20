@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCitizenCase } from '../hooks/useCitizenCase';
 import ResultCard from '../components/ResultCard';
@@ -11,6 +11,7 @@ import { Calendar, ArrowRight, Printer, AlertTriangle, MessageSquare, Loader2, S
 export default function VisitPlan() {
   const { visitPlan, caseId, loading, error, analyzeCase, status } = useCitizenCase();
   const navigate = useNavigate();
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
   // Redirect if no case active or based on case status
   useEffect(() => {
@@ -20,11 +21,12 @@ export default function VisitPlan() {
       navigate('/follow-up');
     } else if (status === 'upload') {
       navigate('/upload');
-    } else if (!visitPlan) {
+    } else if (!visitPlan && !hasAnalyzed && !loading && !error) {
       // Re-trigger analysis if details not populated
+      setHasAnalyzed(true);
       analyzeCase(caseId);
     }
-  }, [caseId, visitPlan, status, navigate, analyzeCase]);
+  }, [caseId, visitPlan, status, navigate, analyzeCase, hasAnalyzed, loading, error]);
 
   const handleGoToChecklist = () => {
     navigate('/checklist');

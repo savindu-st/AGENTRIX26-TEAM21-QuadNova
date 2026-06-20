@@ -22,6 +22,10 @@ export function CitizenCaseProvider({ children }) {
     const saved = localStorage.getItem('praja_visit_plan');
     return saved ? JSON.parse(saved) : null;
   });
+  const [formDetails, setFormDetails] = useState(() => {
+    const saved = localStorage.getItem('praja_form_details');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -53,6 +57,11 @@ export function CitizenCaseProvider({ children }) {
     else localStorage.removeItem('praja_visit_plan');
   }, [visitPlan]);
 
+  useEffect(() => {
+    if (formDetails) localStorage.setItem('praja_form_details', JSON.stringify(formDetails));
+    else localStorage.removeItem('praja_form_details');
+  }, [formDetails]);
+
   // Actions
   const createCase = async (formData) => {
     setLoading(true);
@@ -66,6 +75,7 @@ export function CitizenCaseProvider({ children }) {
       setQuestions(data.questions || []);
       setDocuments(data.documents || []);
       setVisitPlan(data.visitPlan || null);
+      setFormDetails(data.formDetails || null);
       
       // Auto-trigger analyze to determine next step
       await analyzeCase(data.caseId);
@@ -88,6 +98,7 @@ export function CitizenCaseProvider({ children }) {
       setQuestions(data.questions || []);
       setDocuments(data.documents || []);
       setVisitPlan(data.visitPlan || null);
+      setFormDetails(data.formDetails || null);
       if (data.citizenData) {
         setCitizenData(data.citizenData);
       }
@@ -113,6 +124,7 @@ export function CitizenCaseProvider({ children }) {
       setQuestions(data.questions || []);
       setDocuments(data.documents || []);
       setVisitPlan(data.visitPlan || null);
+      setFormDetails(data.formDetails || null);
       if (data.citizenData) {
         setCitizenData(data.citizenData);
       }
@@ -177,6 +189,7 @@ export function CitizenCaseProvider({ children }) {
     setQuestions([]);
     setDocuments([]);
     setVisitPlan(null);
+    setFormDetails(null);
     setError(null);
     localStorage.removeItem('praja_case_id');
     localStorage.removeItem('praja_citizen_data');
@@ -184,6 +197,7 @@ export function CitizenCaseProvider({ children }) {
     localStorage.removeItem('praja_questions');
     localStorage.removeItem('praja_documents');
     localStorage.removeItem('praja_visit_plan');
+    localStorage.removeItem('praja_form_details');
   };
 
   return (
@@ -195,6 +209,7 @@ export function CitizenCaseProvider({ children }) {
         questions,
         documents,
         visitPlan,
+        formDetails,
         loading,
         error,
         createCase,

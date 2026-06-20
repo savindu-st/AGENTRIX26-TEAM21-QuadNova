@@ -73,3 +73,4 @@ class CitizenCaseFullStateResponse(BaseModel):
     documents: List[DocumentStatus]
     visitPlan: Optional[VisitPlan] = None
     requiredDocs: Optional[List[str]] = []
+    formDetails: Optional[Dict[str, Any]] = None

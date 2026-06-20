@@ -75,17 +75,19 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
     return {
         "caseId": db_case.id,
         "citizenData": {
+            "fullName": db_case.citizen_name,
             "citizen_name": db_case.citizen_name,
             "district": db_case.district,
             "description": db_case.description,
             "detected_service": db_case.detected_service,
-            "formDetails": form_details
+            "extractedDetails": db_case.extracted_details
         },
         "status": db_case.status,
         "questions": questions,
         "documents": documents,
         "visitPlan": visit_plan,
-        "requiredDocs": required_docs
+        "requiredDocs": required_docs,
+        "formDetails": form_details
     }
 
 @cases_router.post("/", response_model=CitizenCaseFullStateResponse, status_code=status.HTTP_201_CREATED)
