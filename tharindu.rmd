@@ -38,7 +38,11 @@ cd admin-frontend
 npm install
 npm install axios react-router-dom
 npm install tailwindcss @tailwindcss/vite
+
+
 Step 2 — Admin layout
+// added lucide-react for high-quality SVG icons in the sidebar, 
+//and I've added some sleek animations and modern styling using Tailwind CSS.
 
 Create:
 
@@ -54,6 +58,8 @@ Offices
 Officer Availability
 Crowd Reports
 Knowledge Base
+
+
 Step 3 — Dashboard page
 
 Show cards:
@@ -112,6 +118,7 @@ Need More Information
 Ready to Visit
 Not Ready
 Resolved
+
 Step 6 — Service manager page
 
 Admin can add/update services.
