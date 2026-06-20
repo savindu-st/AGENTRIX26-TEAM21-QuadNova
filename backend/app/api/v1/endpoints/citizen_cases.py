@@ -74,6 +74,21 @@ def get_full_case_state(db_case: CitizenCase, db: Session) -> Dict[str, Any]:
         except Exception:
             pass
             
+    if not form_details:
+        try:
+            from backend.app.api.v1.endpoints.ai import extract_form_details_from_text
+            form_details = extract_form_details_from_text("", db_case.detected_service or "Other Service")
+        except Exception:
+            form_details = {
+                "title": "General Form",
+                "act": "PUBLIC SERVICE ACT",
+                "subtitle": "Application for public service assistance",
+                "fieldLabel": "4. Category:",
+                "fieldValue": "General Request",
+                "descLabel": "5. Request details & remarks:",
+                "defaultDesc": "Requesting general public service coordination"
+            }
+            
     return {
         "caseId": db_case.id,
         "citizenData": {

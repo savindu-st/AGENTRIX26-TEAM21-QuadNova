@@ -171,52 +171,6 @@ const handleMockRequest = async (config) => {
 
     // Determine target officer info
     const district = currentCase.citizenData.district || 'Colombo';
-    
-    let formDetails = {
-      title: "Schedule II - Form A",
-      act: "Felling of Trees (Control) Act, No. 9 of 1951",
-      subtitle: "Application for Permission to Cut down or Remove a Jak, Breadfruit, or Palmyra Tree",
-      fieldLabel: "4. Species of Tree:",
-      fieldValue: "Jak Tree (Artocarpus heterophyllus)",
-      descLabel: "5. Description of land and reasons for the request:",
-      defaultDesc: "Requesting tree felling permit due to structural hazard"
-    };
-
-    const desc = (currentCase.citizenData.serviceNeed || currentCase.citizenData.description || '').toLowerCase();
-    if (desc.includes("nic") || desc.includes("identity")) {
-      formDetails = {
-        title: "Form M.T. 1 (DRP-V1)",
-        act: "REGISTRATION OF PERSONS ACT, NO. 32 OF 1968",
-        subtitle: "Application for Registration and Issue of a National Identity Card (NIC)",
-        fieldLabel: "4. Purpose of Application:",
-        fieldValue: "Renewal of Identity Card due to expiration or damage",
-        descLabel: "5. Personal identification details & remarks:",
-        defaultDesc: "Renewal of national identity card due to expiry of old card"
-      };
-    } else if (desc.includes("passport") || desc.includes("travel")) {
-      formDetails = {
-        title: "Form K-35 A",
-        act: "IMMIGRANTS AND EMIGRANTS ACT, NO. 20 OF 1948",
-        subtitle: "Application for a Sri Lankan Passport / Travel Document",
-        fieldLabel: "4. Passport Category:",
-        fieldValue: "All Countries / Emergency Certificate",
-        descLabel: "5. Travel details & purpose description:",
-        defaultDesc: "Requesting normal service standard passport issue"
-      };
-    } else if (desc.includes("license") || desc.includes("driving")) {
-      formDetails = {
-        title: "Form DL-1",
-        act: "MOTOR TRAFFIC ACT, NO. 14 OF 1951",
-        subtitle: "Application for the Renewal / Issue of Driving License",
-        fieldLabel: "4. Driving Vehicle Class:",
-        fieldValue: "Class B (Light Cars & Dual Purpose Vehicles)",
-        descLabel: "5. License validity renewal justifications:",
-        defaultDesc: "Renewal of standard vehicle driving license"
-      };
-    }
-
-    currentCase.formDetails = formDetails;
-
     currentCase.visitPlan = {
       score,
       riskLevel,

@@ -9,7 +9,7 @@ import ChatInput from '../components/ChatInput';
 import { Calendar, ArrowRight, Printer, AlertTriangle, MessageSquare, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 
 export default function VisitPlan() {
-  const { visitPlan, caseId, citizenData, loading, error, analyzeCase, status } = useCitizenCase();
+  const { visitPlan, caseId, citizenData, loading, error, analyzeCase } = useCitizenCase();
   const navigate = useNavigate();
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
@@ -17,15 +17,11 @@ export default function VisitPlan() {
   useEffect(() => {
     if (!caseId) {
       navigate('/request');
-    } else if (status === 'clarification') {
-      navigate('/follow-up');
-    } else if (status === 'upload') {
-      navigate('/upload');
     } else if (!visitPlan && !hasAnalyzed && !loading && !error) {
       setHasAnalyzed(true);
       analyzeCase(caseId);
     }
-  }, [caseId, visitPlan, status, navigate, analyzeCase, hasAnalyzed, loading, error]);
+  }, [caseId, visitPlan, navigate, analyzeCase, hasAnalyzed, loading, error]);
 
   const handleGoToChecklist = () => {
     navigate('/checklist');

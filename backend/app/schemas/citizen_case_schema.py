@@ -65,6 +65,15 @@ class VisitPlan(BaseModel):
     timeline: List[VisitTimelineStep]
     checklist: VisitPlanChecklist
 
+class FormDetails(BaseModel):
+    title: str
+    act: str
+    subtitle: str
+    fieldLabel: str
+    fieldValue: str
+    descLabel: str
+    defaultDesc: str
+
 class CitizenCaseFullStateResponse(BaseModel):
     caseId: str
     citizenData: Dict[str, Any]
@@ -73,4 +82,4 @@ class CitizenCaseFullStateResponse(BaseModel):
     documents: List[DocumentStatus]
     visitPlan: Optional[VisitPlan] = None
     requiredDocs: Optional[List[str]] = []
-    formDetails: Optional[Dict[str, Any]] = None
+    formDetails: Optional[FormDetails] = None
