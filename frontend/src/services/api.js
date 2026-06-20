@@ -320,12 +320,41 @@ const handleMockRequest = async (config) => {
     }
 
     const currentCase = db.cases[caseId];
+    const fileName = config.data instanceof FormData ? (config.data.get('file')?.name || 'uploaded_document.pdf') : 'document.pdf';
     
     // Add uploaded files representation
     const newDoc = {
-      name: config.data instanceof FormData ? (config.data.get('file')?.name || 'uploaded_document.pdf') : 'document.pdf',
+      name: fileName,
       status: 'success',
       url: '#'
+    };
+
+    // Simulate OCR Data Extraction
+    const fileNameLower = fileName.toLowerCase();
+    const ocrDetails = {
+      fullName: currentCase.citizenData?.citizen_name || currentCase.citizenData?.fullName || "Pasindu Bandara",
+      nicNumber: "199512345678",
+      dob: "1995-05-12",
+      gender: "Male",
+      address: "No. 12, Flower Road, Colombo 03",
+      district: currentCase.citizenData?.district || "Colombo",
+      landDeedNo: null,
+      landOwner: null
+    };
+
+    if (fileNameLower.includes("deed") || fileNameLower.includes("land")) {
+      ocrDetails.landDeedNo = "LD-88421-2023";
+      ocrDetails.landOwner = currentCase.citizenData?.citizen_name || currentCase.citizenData?.fullName || "Pasindu Bandara";
+      ocrDetails.district = currentCase.citizenData?.district || "Colombo";
+    }
+
+    currentCase.citizenData = {
+      ...currentCase.citizenData,
+      fullName: currentCase.citizenData?.citizen_name || currentCase.citizenData?.fullName || "Pasindu Bandara",
+      extractedDetails: {
+        ...(currentCase.citizenData?.extractedDetails || {}),
+        ...ocrDetails
+      }
     };
 
     currentCase.documents.push(newDoc);
