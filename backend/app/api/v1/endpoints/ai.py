@@ -185,7 +185,50 @@ def run_ai_analysis(db_case: CitizenCase, db: Session) -> dict:
         db.refresh(ai_resp)
 
     state = json.loads(ai_resp.response_text)
-    questions = state.get("questions", DEFAULT_QUESTIONS)
+    questions = state.get("questions", [])
+    
+    # Check if questions need to be dynamically generated
+    if not questions or questions == DEFAULT_QUESTIONS:
+        prompt = f"""
+You are the "Sri Lanka Public Service Navigator Agent". The citizen needs help with the following service request.
+Citizen Request: "{db_case.description}"
+District: "{db_case.district}"
+
+Generate exactly 3 multiple-choice clarification questions to help identify their specific situation, required documents, or eligibility.
+Format the output strictly as a JSON list of objects. Each object must have:
+- "id": a unique string (e.g., "q1")
+- "text": the question string
+- "options": a list of 2-4 string options
+- "type": "radio"
+- "answered": false
+- "answer": null
+
+Return ONLY the raw JSON list, with no markdown code block formatting (like ```json).
+"""
+        try:
+            resp = ask_gemini(prompt)
+            cleaned = resp.strip()
+            if cleaned.startswith("```json"):
+                cleaned = cleaned[7:]
+            if cleaned.startswith("```"):
+                cleaned = cleaned[3:]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+            
+            generated_questions = json.loads(cleaned)
+            if isinstance(generated_questions, list) and len(generated_questions) > 0:
+                questions = generated_questions
+            else:
+                questions = DEFAULT_QUESTIONS
+        except Exception as e:
+            logger.error(f"Failed to generate dynamic questions: {e}")
+            questions = DEFAULT_QUESTIONS
+            
+        state["questions"] = questions
+        ai_resp.response_text = json.dumps(state)
+        db.commit()
+
     documents = state.get("documents", [])
     
     # Check for unanswered questions

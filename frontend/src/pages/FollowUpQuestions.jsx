@@ -85,7 +85,7 @@ export default function FollowUpQuestions() {
         <div className="text-center md:text-left space-y-2">
           <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-700 font-bold text-sm">
             <HelpCircle className="h-4.5 w-4.5" />
-            <span>STEP 2 OF 5</span>
+            <span>Step 2 of 5: Clarification</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
             AI Clarification Portal

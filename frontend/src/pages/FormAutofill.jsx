@@ -196,6 +196,10 @@ fileContent += `Description & Purpose: ${formData.serviceNeed}\n\n` +
         </div>
 
         <div className="text-center md:text-left space-y-2 border-b border-slate-100 pb-4">
+          <div className="inline-flex items-center gap-1.5 text-teal-700 font-bold text-sm bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
+            <FileCheck className="h-4 w-4" />
+            <span>Step 4 of 5: Form Autofill Preview</span>
+          </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
             AI Government Form Autofill
           </h1>

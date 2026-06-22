@@ -35,9 +35,16 @@ export default function CitizenRequest() {
         availableDocuments: [] // initialized empty, verified later
       });
       
-      // Navigate directly to the A-to-Z Guidelines Page
+      // Navigate dynamically based on case status
       setTimeout(() => {
-        navigate('/plan');
+        const nextStatus = localStorage.getItem('praja_case_status') || 'clarification';
+        if (nextStatus === 'clarification') {
+          navigate('/follow-up');
+        } else if (nextStatus === 'upload') {
+          navigate('/upload');
+        } else {
+          navigate('/plan');
+        }
       }, 800);
     } catch (err) {
       console.error(err);
@@ -52,7 +59,7 @@ export default function CitizenRequest() {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-teal-700 font-bold text-sm bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
             <MapPin className="h-4 w-4" />
-            <span>Step 2 of 4: Details Gathering</span>
+            <span>Step 1 of 5: Details Gathering</span>
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
             Tell us where you are located
