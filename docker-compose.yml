@@ -7,9 +7,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/backend
     environment:
       - ENVIRONMENT=development
+      - PYTHONPATH=/
+    env_file:
+      - .env
 
   frontend:
     build:
@@ -26,7 +29,7 @@ services:
     build:
       context: ./admin-frontend
     ports:
-      - "3001:5174"  # Changed host port to 3001 to bypass Windows port blocking
+      - "5174:5173"
     volumes:
       - ./admin-frontend:/app
       - /app/node_modules

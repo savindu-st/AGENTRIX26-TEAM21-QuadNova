@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "brand_sub": "Citizen Support",
+    "home": "Home",
+    "reset_case": "Reset Case",
+    "community_updates": "Community Updates",
+    "start_assessment": "Start Assessment",
+    "language": "English"
+  },
+  "home": {
+    "badge": "Sri Lanka Citizen Support Navigator",
+    "welcome": "Skip the Queue. Be Visit-Ready.",
+    "subtitle": "Describe your government paperwork or visit need in plain English, Sinhala, or Tamil. We'll outline your correct roadmap and prepare your forms instantly.",
+    "input_placeholder": "E.g., I need to get a new passport...",
+    "start_button": "Next step",
+    "suggestions": {
+      "tree": "I need a permit to cut down a dangerous Jak tree in my garden.",
+      "grama": "I want to request a Grama Niladhari residence certificate.",
+      "deed": "How do I verify a land ownership deed at the divisional office?"
+    },
+    "disclaimer_title": "Empathetic Public Service Help",
+    "disclaimer": "This is not a government agency. We are an independent, community-driven civic helper. We translate complicated rules into straightforward steps and fill out your paperwork automatically so you don't get rejected.",
+    "footer_copy": "© 2026 PrajaNavigator AI. Designed for public service empowerment.",
+    "footer_disclaimer": "This tool is built to assist citizens. Please verify with local authorities for formal legal mandates."
+  }
+}

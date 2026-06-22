@@ -2,3 +2,8 @@ fastapi
 uvicorn
 pydantic
 pydantic-settings
+sqlalchemy
+google-generativeai
+python-dotenv
+email-validator
+python-multipart
